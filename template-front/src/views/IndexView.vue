@@ -24,8 +24,9 @@
       <el-container>
         <el-header style="text-align: right; font-size: 12px; display: flex; align-items: center; justify-content: flex-end;">
           <div class="toolbar">
+            <el-button text @click="switchMode" v-if="role === 'admin'">切换到管理端</el-button>
             <el-dropdown>
-              <span class="el-dropdown-link" style="cursor: pointer; display: flex; align-items: center;">
+              <span class="el-dropdown-link" style="cursor: pointer; display: flex; align-items: center; margin-left: 10px">
                 <el-icon style="margin-right: 8px"><Setting /></el-icon>
                 <span>操作</span>
               </span>
@@ -46,17 +47,22 @@
 </template>
 
 <script setup>
-import { logout } from '@/net'
+import { logout, takeRole } from '@/net'
 import router from "@/router";
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { Calendar, Setting } from '@element-plus/icons-vue'
 
 const route = useRoute();
 const activeMenu = computed(() => route.path);
+const role = ref(takeRole())
 
 function userLogout() {
   logout(() => router.push("/"))
+}
+
+function switchMode() {
+    router.push('/admin')
 }
 </script>
 

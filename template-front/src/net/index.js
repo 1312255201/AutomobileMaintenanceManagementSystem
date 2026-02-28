@@ -37,10 +37,18 @@ function takeAccessToken() {
     return authObj.token
 }
 
-function storeAccessToken(remember, token, expire){
+function takeRole() {
+    const str = localStorage.getItem(authItemName) || sessionStorage.getItem(authItemName);
+    if(!str) return null
+    const authObj = JSON.parse(str)
+    return authObj.role
+}
+
+function storeAccessToken(remember, token, expire, role){
     const authObj = {
         token: token,
-        expire: expire
+        expire: expire,
+        role: role
     }
     const str = JSON.stringify(authObj)
     if(remember)
@@ -90,7 +98,7 @@ function login(username, password, remember, success, failure = defaultFailure){
     }, {
         'Content-Type': 'application/x-www-form-urlencoded'
     }, (data) => {
-        storeAccessToken(remember, data.token, data.expire)
+        storeAccessToken(remember, data.token, data.expire, data.role)
         ElMessage.success(`登录成功，欢迎 ${data.username} 来到我们的系统`)
         success(data)
     }, failure)
@@ -116,4 +124,4 @@ function unauthorized() {
     return !takeAccessToken()
 }
 
-export { post, get, login, logout, unauthorized }
+export { post, get, login, logout, unauthorized, takeRole }
