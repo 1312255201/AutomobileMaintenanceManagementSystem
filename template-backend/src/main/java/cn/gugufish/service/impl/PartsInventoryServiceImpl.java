@@ -1,9 +1,11 @@
 package cn.gugufish.service.impl;
 
+import cn.gugufish.entity.dto.Appointment;
 import cn.gugufish.entity.dto.PartsInbound;
 import cn.gugufish.entity.dto.PartsInventory;
 import cn.gugufish.entity.dto.PartsOutbound;
 import cn.gugufish.entity.dto.PartsCategory;
+import cn.gugufish.entity.dto.Account;
 import cn.gugufish.entity.vo.request.PartsInboundVO;
 import cn.gugufish.entity.vo.request.PartsInventoryCreateVO;
 import cn.gugufish.entity.vo.request.PartsInventoryUpdateVO;
@@ -13,6 +15,8 @@ import cn.gugufish.mapper.PartsInboundMapper;
 import cn.gugufish.mapper.PartsInventoryMapper;
 import cn.gugufish.mapper.PartsOutboundMapper;
 import cn.gugufish.mapper.PartsCategoryMapper;
+import cn.gugufish.mapper.AppointmentMapper;
+import cn.gugufish.mapper.AccountMapper;
 import cn.gugufish.service.PartsInventoryService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -36,6 +40,12 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
 
     @Resource
     PartsCategoryMapper partsCategoryMapper;
+
+    @Resource
+    AppointmentMapper appointmentMapper;
+
+    @Resource
+    AccountMapper accountMapper;
 
     @Override
     public String createPart(PartsInventoryCreateVO vo) {
@@ -137,6 +147,11 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
         if (part.getQuantity() < vo.getQuantity()) {
             return "库存不足";
         }
+
+        Appointment appointment = appointmentMapper.selectById(vo.getAppointmentId());
+        if (appointment == null) {
+            return "关联的预约单不存在";
+        }
         
         // Update Inventory
         part.setQuantity(part.getQuantity() - vo.getQuantity());
@@ -148,12 +163,58 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
         PartsOutbound outbound = new PartsOutbound();
         BeanUtils.copyProperties(vo, outbound);
         outbound.setOperatorId(operatorId);
+        outbound.setAppointmentId(vo.getAppointmentId());
+        
+        // Auto-fill customer name from appointment user
+        Account user = accountMapper.selectById(appointment.getUserId());
+        if (user != null) {
+            outbound.setCustomerName(user.getUsername());
+        } else {
+            outbound.setCustomerName("Unknown (ID: " + appointment.getUserId() + ")");
+        }
+        
         outbound.setCreateTime(new Date());
         
         if (partsOutboundMapper.insert(outbound) > 0) {
             return null;
         } else {
             throw new RuntimeException("出库记录创建失败");
+        }
+    }
+
+    @Override
+    public IPage<PartsInbound> getInboundList(int pageNum, int pageSize) {
+        Page<PartsInbound> page = new Page<>(pageNum, pageSize);
+        QueryWrapper<PartsInbound> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("create_time");
+        return partsInboundMapper.selectPage(page, queryWrapper);
+    }
+
+    @Override
+    public IPage<PartsOutbound> getOutboundList(int pageNum, int pageSize) {
+        Page<PartsOutbound> page = new Page<>(pageNum, pageSize);
+        QueryWrapper<PartsOutbound> queryWrapper = new QueryWrapper<>();
+        queryWrapper.orderByDesc("create_time");
+        return partsOutboundMapper.selectPage(page, queryWrapper);
+    }
+
+    @Override
+    @Transactional
+    public String deleteOutbound(int id) {
+        PartsOutbound outbound = partsOutboundMapper.selectById(id);
+        if (outbound == null) return "记录不存在";
+        
+        // Restore Inventory
+        PartsInventory part = this.getById(outbound.getPartId());
+        if (part != null) {
+            part.setQuantity(part.getQuantity() + outbound.getQuantity());
+            this.updateById(part);
+        }
+        
+        if (partsOutboundMapper.deleteById(id) > 0) {
+            return null;
+        } else {
+            throw new RuntimeException("删除失败");
         }
     }
 }

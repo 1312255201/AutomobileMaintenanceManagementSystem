@@ -161,8 +161,8 @@
         </el-dialog>
 
         <!-- Outbound Dialog -->
-        <el-dialog v-model="showOutboundDialog" title="配件销售(出库)" width="400px">
-            <el-form :model="outboundForm" ref="outboundFormRef" :rules="outboundRules" label-width="80px">
+        <el-dialog v-model="showOutboundDialog" title="配件销售(出库)" width="500px">
+            <el-form :model="outboundForm" ref="outboundFormRef" :rules="outboundRules" label-width="100px">
                 <el-form-item label="配件名称">
                     <el-input v-model="currentRow.name" disabled />
                 </el-form-item>
@@ -175,8 +175,18 @@
                 <el-form-item label="销售单价" prop="price">
                     <el-input-number v-model="outboundForm.price" :precision="2" :step="0.1" :min="0" style="width: 100%" />
                 </el-form-item>
-                <el-form-item label="客户姓名" prop="customerName">
-                    <el-input v-model="outboundForm.customerName" placeholder="请输入客户姓名" />
+                <el-form-item label="关联工单" prop="appointmentId">
+                    <el-select v-model="outboundForm.appointmentId" placeholder="请选择维修工单/用户" style="width: 100%" filterable>
+                        <el-option
+                            v-for="item in activeAppointments"
+                            :key="item.id"
+                            :label="`${item.carModel} (${item.licensePlate}) - ${item.description}`"
+                            :value="item.id"
+                        >
+                            <span style="float: left">{{ item.carModel }} - {{ item.licensePlate }}</span>
+                            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.description }}</span>
+                        </el-option>
+                    </el-select>
                 </el-form-item>
                 <el-form-item label="备注" prop="remark">
                     <el-input v-model="outboundForm.remark" type="textarea" />
@@ -208,6 +218,7 @@ const searchCategoryId = ref(null)
 const searchBrand = ref('')
 const categoryList = ref([])
 const supplierList = ref([])
+const activeAppointments = ref([])
 
 const showDialog = ref(false)
 const isEdit = ref(false)
@@ -248,7 +259,7 @@ const outboundForm = reactive({
     partId: null,
     quantity: 1,
     price: 0,
-    customerName: '',
+    appointmentId: null,
     remark: ''
 })
 
@@ -259,7 +270,8 @@ const inboundRules = {
 
 const outboundRules = {
     quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }],
-    price: [{ required: true, message: '请输入单价', trigger: 'blur' }]
+    price: [{ required: true, message: '请输入单价', trigger: 'blur' }],
+    appointmentId: [{ required: true, message: '请选择关联工单', trigger: 'change' }]
 }
 
 const loadData = () => {
@@ -285,6 +297,12 @@ const loadCategories = () => {
 const loadSuppliers = () => {
     get('/api/admin/supplier/list?page=1&size=100', (data) => {
         supplierList.value = data.records
+    })
+}
+
+const loadActiveAppointments = () => {
+    get('/api/admin/appointment/active', (data) => {
+        activeAppointments.value = data
     })
 }
 
@@ -378,9 +396,10 @@ const openOutboundDialog = (row) => {
     outboundForm.partId = row.id
     outboundForm.quantity = 1
     outboundForm.price = row.price
-    outboundForm.customerName = ''
+    outboundForm.appointmentId = null
     outboundForm.remark = ''
     showOutboundDialog.value = true
+    loadActiveAppointments()
 }
 
 const submitOutbound = () => {

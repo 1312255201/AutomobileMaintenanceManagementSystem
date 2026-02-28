@@ -22,6 +22,7 @@ public class PartsOutbound implements BaseData {
     Integer quantity;
     BigDecimal price;
     String customerName;
+    Integer appointmentId;
     Integer operatorId;
     String remark;
     Date createTime;
