@@ -26,6 +26,7 @@
             </template>
             <el-menu-item index="/index/user/info">个人信息</el-menu-item>
             <el-menu-item index="/index/user/vehicle">车辆管理</el-menu-item>
+            <el-menu-item index="/index/user/coupon">我的优惠券</el-menu-item>
           </el-sub-menu>
         </el-menu>
       </el-aside>

@@ -41,6 +41,10 @@ const router = createRouter({
                     path: 'user/vehicle',
                     name: 'user-vehicle',
                     component: () => import('@/views/user/VehiclePage.vue')
+                }, {
+                    path: 'user/coupon',
+                    name: 'user-coupon',
+                    component: () => import('@/views/user/CouponPage.vue')
                 }
             ]
         }, {
@@ -77,6 +81,10 @@ const router = createRouter({
                     path: 'parts/outbound',
                     name: 'admin-parts-outbound',
                     component: () => import('@/views/admin/parts/OutboundPage.vue')
+                }, {
+                    path: 'coupon',
+                    name: 'admin-coupon',
+                    component: () => import('@/views/admin/CouponPage.vue')
                 }
             ]
         }

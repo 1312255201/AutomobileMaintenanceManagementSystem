@@ -83,7 +83,6 @@
                     <h3>维修项目列表</h3>
                     <div v-if="currentOrder.status < 2">
                         <el-button type="primary" size="small" @click="openAddItemDialog(1)">添加工时</el-button>
-                        <!-- <el-button type="success" size="small" @click="openAddItemDialog(2)">添加配件</el-button> -->
                         <el-tooltip content="请前往 [配件管理-库存列表-销售] 进行配件出库并关联此维修单" placement="top">
                             <el-button type="info" size="small">添加配件</el-button>
                         </el-tooltip>

@@ -2,11 +2,15 @@ package cn.gugufish.service.impl;
 
 import cn.gugufish.entity.dto.Appointment;
 import cn.gugufish.entity.dto.Account;
+import cn.gugufish.entity.dto.MaintenanceOrder;
 import cn.gugufish.entity.vo.request.AppointmentCreateVO;
 import cn.gugufish.entity.vo.response.AppointmentVO;
+import cn.gugufish.entity.vo.response.MaintenanceOrderVO;
 import cn.gugufish.mapper.AccountMapper;
 import cn.gugufish.mapper.AppointmentMapper;
+import cn.gugufish.mapper.MaintenanceOrderMapper;
 import cn.gugufish.service.AppointmentService;
+import cn.gugufish.service.MaintenanceOrderService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
@@ -24,6 +28,12 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
 
     @Resource
     AccountMapper accountMapper;
+
+    @Resource
+    MaintenanceOrderMapper maintenanceOrderMapper;
+    
+    @Resource
+    MaintenanceOrderService maintenanceOrderService;
 
     @Override
     public String createAppointment(int userId, AppointmentCreateVO vo) {
@@ -80,5 +90,21 @@ public class AppointmentServiceImpl extends ServiceImpl<AppointmentMapper, Appoi
             }
             return vo;
         }).collect(Collectors.toList());
+    }
+
+    @Override
+    public Object getOrderInfo(int appointmentId) {
+        QueryWrapper<MaintenanceOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("appointment_id", appointmentId);
+        MaintenanceOrder order = maintenanceOrderMapper.selectOne(queryWrapper);
+        if (order == null) return null;
+        
+        // Return full detail for billing
+        return maintenanceOrderService.getOrderDetail(order.getId());
+    }
+
+    @Override
+    public String payOrder(int orderId, Integer couponId) {
+        return maintenanceOrderService.payOrderWithCoupon(orderId, couponId);
     }
 }

@@ -23,6 +23,18 @@
                         <el-tag :type="getStatusType(scope.row.status)">{{ getStatusText(scope.row.status) }}</el-tag>
                     </template>
                 </el-table-column>
+                <el-table-column label="操作" width="100">
+                    <template #default="scope">
+                        <el-button 
+                            v-if="scope.row.status === 2" 
+                            size="small" 
+                            type="primary" 
+                            @click="openPayDialog(scope.row)"
+                        >
+                            去支付
+                        </el-button>
+                    </template>
+                </el-table-column>
                 <el-table-column prop="createTime" label="创建时间" width="180">
                     <template #default="scope">
                         {{ new Date(scope.row.createTime).toLocaleString() }}
@@ -78,6 +90,48 @@
                 </span>
             </template>
         </el-dialog>
+        <el-dialog v-model="showPayDialog" title="支付订单" width="500px">
+            <el-descriptions title="维修单详情" :column="1" border>
+                <el-descriptions-item label="车型">{{ currentOrder.carModel }}</el-descriptions-item>
+                <el-descriptions-item label="车牌">{{ currentOrder.licensePlate }}</el-descriptions-item>
+                <el-descriptions-item label="维修工">{{ currentOrder.repairmanName }}</el-descriptions-item>
+                <el-descriptions-item label="原始金额">
+                    <span style="font-weight: bold">¥{{ currentOrder.totalCost }}</span>
+                </el-descriptions-item>
+            </el-descriptions>
+            
+            <div style="margin-top: 20px">
+                <el-form label-width="100px">
+                    <el-form-item label="选择优惠券">
+                        <el-select v-model="selectedCouponId" placeholder="请选择优惠券" style="width: 100%" clearable>
+                            <el-option
+                                v-for="item in availableCoupons"
+                                :key="item.id"
+                                :label="`${item.name} (省¥${item.discountAmount})`"
+                                :value="item.id"
+                            >
+                                <span style="float: left">{{ item.name }}</span>
+                                <span style="float: right; color: #8492a6; font-size: 13px">
+                                    减 ¥{{ item.discountAmount }}
+                                </span>
+                            </el-option>
+                        </el-select>
+                    </el-form-item>
+                    <el-form-item label="应付金额">
+                        <span style="font-size: 20px; color: #f56c6c; font-weight: bold">
+                            ¥{{ calculateFinalAmount() }}
+                        </span>
+                    </el-form-item>
+                </el-form>
+            </div>
+            
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="showPayDialog = false">取消</el-button>
+                    <el-button type="primary" @click="submitPay">确认支付</el-button>
+                </span>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
@@ -101,6 +155,11 @@ const form = reactive({
     serviceType: '',
     description: ''
 })
+
+const showPayDialog = ref(false)
+const currentOrder = ref({})
+const availableCoupons = ref([])
+const selectedCouponId = ref(null)
 
 const rules = {
     carModel: [{ required: true, message: '请输入车型', trigger: 'blur' }],
@@ -164,6 +223,68 @@ const submitForm = () => {
         } else {
             return false
         }
+    })
+}
+
+const openPayDialog = (row) => {
+    // Assuming appointment ID maps to Maintenance Order?
+    // We need to fetch the maintenance order details for this appointment.
+    // However, the backend doesn't have a direct "getOrderByAppointmentId" endpoint.
+    // But wait, the user clicks "Pay" on an Appointment row.
+    // The requirement says: "When maintenance order is completed, show bill info to user, allow user to pay with coupon".
+    // So we need to find the maintenance order associated with this appointment.
+    
+    // Let's first get the order detail. We might need a new endpoint or search.
+    // Or we can assume the appointment list includes orderId? No.
+    // Let's add a helper to fetch active order for this appointment or just list orders.
+    // Actually, maybe we should list Maintenance Orders for the user instead of Appointments?
+    // But the user asked to "show bill info... allow user to pay".
+    
+    // Let's try to get the order detail by appointment ID.
+    // I'll create a new endpoint in Backend: /api/appointment/order/{appointmentId}
+    // OR, I can fetch the user's maintenance orders.
+    
+    // For now, let's assume we can get the order details.
+    // I'll add a new endpoint in AppointmentController/Service.
+    get(`/api/appointment/order/${row.id}`, (data) => {
+        currentOrder.value = data
+        selectedCouponId.value = null
+        showPayDialog.value = true
+        loadCoupons()
+    }, (msg) => {
+        ElMessage.warning(msg)
+    })
+}
+
+const loadCoupons = () => {
+    get(`/api/coupon/my?_t=${Date.now()}`, (data) => {
+        // Filter valid coupons
+        availableCoupons.value = data.filter(c => c.status === 0 && new Date(c.validEnd) > new Date())
+    })
+}
+
+const calculateFinalAmount = () => {
+    if (!currentOrder.value.totalCost) return 0
+    let cost = currentOrder.value.totalCost
+    if (selectedCouponId.value) {
+        const coupon = availableCoupons.value.find(c => c.id === selectedCouponId.value)
+        if (coupon) {
+            if (cost >= coupon.conditionAmount) {
+                cost = cost - coupon.discountAmount
+            }
+        }
+    }
+    return cost < 0 ? 0 : cost
+}
+
+const submitPay = () => {
+    post('/api/appointment/pay', {
+        orderId: currentOrder.value.id,
+        couponId: selectedCouponId.value
+    }, () => {
+        ElMessage.success('支付成功！')
+        showPayDialog.value = false
+        loadData()
     })
 }
 

@@ -12,4 +12,6 @@ public interface AppointmentService extends IService<Appointment> {
     String createAppointment(int userId, AppointmentCreateVO vo);
     IPage<AppointmentVO> getAppointmentList(int userId, int pageNum, int pageSize);
     List<AppointmentVO> getActiveAppointments();
+    Object getOrderInfo(int appointmentId);
+    String payOrder(int orderId, Integer couponId);
 }

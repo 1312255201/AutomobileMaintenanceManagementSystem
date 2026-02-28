@@ -256,8 +256,7 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
                 QueryWrapper<MaintenanceItem> itemWrapper = new QueryWrapper<>();
                 itemWrapper.eq("order_id", outbound.getOrderId())
                            .eq("part_id", outbound.getPartId())
-                           .eq("item_type", 2)
-                           .last("LIMIT 1"); // Assuming one-to-one or FIFO for same parts
+                           .last("LIMIT 1"); // Removed item_type check to be more robust
                 
                 MaintenanceItem item = maintenanceItemMapper.selectOne(itemWrapper);
                 if (item != null) {

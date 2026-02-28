@@ -12,6 +12,8 @@ import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import cn.gugufish.entity.vo.request.OrderPayVO;
+
 @RestController
 @RequestMapping("/api/appointment")
 @Tag(name = "预约管理", description = "用户发起预约等操作")
@@ -25,6 +27,23 @@ public class AppointmentController {
     public RestBean<Void> createAppointment(@RequestAttribute(Const.ATTR_USER_ID) int userId,
                                             @RequestBody @Valid AppointmentCreateVO vo) {
         String message = appointmentService.createAppointment(userId, vo);
+        if (message == null) {
+            return RestBean.success();
+        } else {
+            return RestBean.failure(400, message);
+        }
+    }
+
+    @GetMapping("/order/{id}")
+    @Operation(summary = "获取预约关联的维修单详情")
+    public RestBean<Object> getOrderInfo(@PathVariable int id) {
+        return RestBean.success(appointmentService.getOrderInfo(id));
+    }
+
+    @PostMapping("/pay")
+    @Operation(summary = "支付订单")
+    public RestBean<Void> payOrder(@RequestBody OrderPayVO vo) {
+        String message = appointmentService.payOrder(vo.getOrderId(), vo.getCouponId());
         if (message == null) {
             return RestBean.success();
         } else {

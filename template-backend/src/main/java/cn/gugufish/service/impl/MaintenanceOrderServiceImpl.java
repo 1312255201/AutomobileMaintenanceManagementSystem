@@ -38,6 +38,9 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
     @Resource
     PartsOutboundMapper partsOutboundMapper;
 
+    @Resource
+    CouponMapper couponMapper;
+
     @Override
     public List<MaintenanceOrderVO> getOrderList() {
         List<MaintenanceOrder> orders = this.list();
@@ -178,19 +181,24 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
         
         // Handle Part type restore
         if (item.getItemType() == 2 && item.getPartId() != null) {
-            PartsInventory part = partsInventoryMapper.selectById(item.getPartId());
-            if (part != null) {
-                part.setQuantity(part.getQuantity() + item.getQuantity());
-                partsInventoryMapper.updateById(part);
-            }
-            
-            // Delete associated Outbound record (Assume one-to-one for simplicity, or delete all matching if duplicates allowed)
-            // To be safe, we try to delete one matching record
+            // Find associated Outbound record
             QueryWrapper<PartsOutbound> outboundWrapper = new QueryWrapper<>();
             outboundWrapper.eq("order_id", item.getOrderId())
                            .eq("part_id", item.getPartId())
                            .last("LIMIT 1");
-            partsOutboundMapper.delete(outboundWrapper);
+            PartsOutbound outbound = partsOutboundMapper.selectOne(outboundWrapper);
+
+            if (outbound != null) {
+                // Found outbound record -> Restore inventory and delete record
+                PartsInventory part = partsInventoryMapper.selectById(item.getPartId());
+                if (part != null) {
+                    part.setQuantity(part.getQuantity() + item.getQuantity());
+                    partsInventoryMapper.updateById(part);
+                }
+                partsOutboundMapper.deleteById(outbound.getId());
+            } else {
+                // Outbound record not found -> Assume already processed/deleted. Do NOT restore inventory to avoid double counting.
+            }
         }
         
         maintenanceItemMapper.deleteById(itemId);
@@ -226,8 +234,52 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
     @Override
     @Transactional
     public String payOrder(int orderId) {
+        return payOrderWithCoupon(orderId, null);
+    }
+
+    @Override
+    @Transactional
+    public String payOrderWithCoupon(int orderId, Integer couponId) {
         MaintenanceOrder order = this.getById(orderId);
         if (order == null) return "维修单不存在";
+        if (order.getStatus() == 3) return "维修单已支付";
+        
+        BigDecimal finalAmount = order.getTotalCost();
+        
+        if (couponId != null) {
+            Coupon coupon = couponMapper.selectById(couponId);
+            if (coupon == null) return "优惠券不存在";
+            
+            // Validate user (security check)
+            Appointment appointment = appointmentMapper.selectById(order.getAppointmentId());
+            if (appointment != null && !appointment.getUserId().equals(coupon.getUserId())) {
+                return "优惠券不属于该用户";
+            }
+            
+            if (coupon.getStatus() != 0) return "优惠券已使用或已过期";
+            if (new Date().after(coupon.getValidEnd())) return "优惠券已过期";
+            
+            // Check condition
+            if (order.getTotalCost().compareTo(coupon.getConditionAmount()) < 0) {
+                return "未满足优惠券使用门槛";
+            }
+            
+            // Apply discount
+            BigDecimal discount = coupon.getDiscountAmount();
+            if (order.getTotalCost().compareTo(discount) < 0) {
+                 // Prevent negative
+                 finalAmount = BigDecimal.ZERO;
+            } else {
+                 finalAmount = order.getTotalCost().subtract(discount);
+            }
+            
+            // Mark coupon as used
+            coupon.setStatus(1);
+            couponMapper.updateById(coupon);
+        }
+        
+        // Here we would process payment with finalAmount...
+        // For now just mark as paid
         
         order.setStatus(3); // Paid
         order.setUpdateTime(new Date());
