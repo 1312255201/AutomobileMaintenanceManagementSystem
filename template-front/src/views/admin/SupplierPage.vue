@@ -179,7 +179,7 @@ const rules = {
 
 const loadData = () => {
     loading.value = true
-    get(`/api/admin/supplier/list?page=${currentPage.value}&size=${pageSize.value}&name=${searchName.value}`, (data) => {
+    get(`/api/admin/supplier/list?page=${currentPage.value}&size=${pageSize.value}&name=${searchName.value}&_t=${Date.now()}`, (data) => {
         tableData.value = data.records
         total.value = data.total
         loading.value = false

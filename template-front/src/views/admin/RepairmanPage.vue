@@ -111,7 +111,7 @@ const rules = {
 
 const loadData = () => {
     loading.value = true
-    get(`/api/admin/repairman/list?page=${currentPage.value}&size=${pageSize.value}`, (data) => {
+    get(`/api/admin/repairman/list?page=${currentPage.value}&size=${pageSize.value}&_t=${Date.now()}`, (data) => {
         tableData.value = data.records
         total.value = data.total
         loading.value = false

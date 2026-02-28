@@ -276,7 +276,7 @@ const outboundRules = {
 
 const loadData = () => {
     loading.value = true
-    let url = `/api/admin/parts/inventory/list?page=${currentPage.value}&size=${pageSize.value}`
+    let url = `/api/admin/parts/inventory/list?page=${currentPage.value}&size=${pageSize.value}&_t=${Date.now()}`
     if (searchName.value) url += `&name=${searchName.value}`
     if (searchCategoryId.value) url += `&categoryId=${searchCategoryId.value}`
     if (searchBrand.value) url += `&brand=${searchBrand.value}`
@@ -289,19 +289,19 @@ const loadData = () => {
 }
 
 const loadCategories = () => {
-    get('/api/admin/parts/category/list?page=1&size=100', (data) => {
+    get(`/api/admin/parts/category/list?page=1&size=100&_t=${Date.now()}`, (data) => {
         categoryList.value = data.records
     })
 }
 
 const loadSuppliers = () => {
-    get('/api/admin/supplier/list?page=1&size=100', (data) => {
+    get(`/api/admin/supplier/list?page=1&size=100&_t=${Date.now()}`, (data) => {
         supplierList.value = data.records
     })
 }
 
 const loadActiveAppointments = () => {
-    get('/api/admin/appointment/active', (data) => {
+    get(`/api/admin/appointment/active?_t=${Date.now()}`, (data) => {
         activeAppointments.value = data
     })
 }

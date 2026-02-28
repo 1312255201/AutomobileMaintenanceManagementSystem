@@ -50,7 +50,7 @@ const total = ref(0)
 
 const loadData = () => {
     loading.value = true
-    get(`/api/admin/parts/inventory/inbound/list?page=${currentPage.value}&size=${pageSize.value}`, (data) => {
+    get(`/api/admin/parts/inventory/inbound/list?page=${currentPage.value}&size=${pageSize.value}&_t=${Date.now()}`, (data) => {
         tableData.value = data.records
         total.value = data.total
         loading.value = false
