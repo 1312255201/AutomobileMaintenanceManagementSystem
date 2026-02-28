@@ -37,6 +37,10 @@ const router = createRouter({
                     path: 'user/info',
                     name: 'user-info',
                     component: () => import('@/views/user/ClientInfoPage.vue')
+                }, {
+                    path: 'user/vehicle',
+                    name: 'user-vehicle',
+                    component: () => import('@/views/user/VehiclePage.vue')
                 }
             ]
         }, {

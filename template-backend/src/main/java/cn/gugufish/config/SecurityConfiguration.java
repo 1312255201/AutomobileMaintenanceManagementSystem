@@ -134,4 +134,3 @@ public class SecurityConfiguration {
         writer.write(RestBean.failure(400, "退出登录失败").asJsonString());
     }
 }
-    
