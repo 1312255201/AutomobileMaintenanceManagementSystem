@@ -61,11 +61,8 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
         }
         
         List<MaintenanceItem> items = maintenanceItemMapper.selectList(
-                this.lambdaQuery().getWrapper().eq("order_id", id)); // Using raw query wrapper style or better use Item Mapper directly
+                new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<MaintenanceItem>().eq("order_id", id));
         
-        // Let's use item mapper properly
-        items = maintenanceItemMapper.selectList(new com.baomidou.mybatisplus.core.conditions.query.QueryWrapper<MaintenanceItem>().eq("order_id", id));
-
         vo.setItems(items.stream()
                 .map(item -> item.asViewObject(MaintenanceItemVO.class))
                 .collect(Collectors.toList()));

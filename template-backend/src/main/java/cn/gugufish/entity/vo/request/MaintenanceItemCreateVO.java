@@ -1,11 +1,12 @@
 package cn.gugufish.entity.vo.request;
 
+import cn.gugufish.entity.BaseData;
 import lombok.Data;
 import jakarta.validation.constraints.NotNull;
 import java.math.BigDecimal;
 
 @Data
-public class MaintenanceItemCreateVO {
+public class MaintenanceItemCreateVO implements BaseData {
     @NotNull
     private Integer orderId;
     @NotNull
