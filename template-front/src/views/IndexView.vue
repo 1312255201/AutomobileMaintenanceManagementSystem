@@ -2,6 +2,10 @@
   <div class="common-layout">
     <el-container class="layout-container">
       <el-aside width="200px">
+        <div class="logo">
+            <el-image style="width: 40px; height: 40px" src="/favicon.ico" fit="cover" />
+            <span class="title">汽车维修</span>
+        </div>
         <el-menu
           router
           :default-active="activeMenu"
@@ -9,7 +13,7 @@
           background-color="#545c64"
           text-color="#fff"
           active-text-color="#ffd04b"
-          style="height: 100%"
+          style="height: calc(100% - 60px)"
         >
           <el-menu-item index="/index/appointment">
             <el-icon><Calendar /></el-icon>
@@ -71,5 +75,18 @@ function userLogout() {
 }
 .el-main {
     background-color: #f0f2f5;
+}
+.logo {
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #434a50;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+}
+.title {
+    margin-left: 10px;
 }
 </style>

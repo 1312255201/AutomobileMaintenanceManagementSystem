@@ -2,8 +2,10 @@ package cn.gugufish.controller;
 
 import cn.gugufish.entity.RestBean;
 import cn.gugufish.entity.vo.request.AppointmentCreateVO;
+import cn.gugufish.entity.vo.response.AppointmentVO;
 import cn.gugufish.service.AppointmentService;
 import cn.gugufish.utils.Const;
+import com.baomidou.mybatisplus.core.metadata.IPage;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.annotation.Resource;
@@ -28,5 +30,13 @@ public class AppointmentController {
         } else {
             return RestBean.failure(400, message);
         }
+    }
+
+    @GetMapping("/list")
+    @Operation(summary = "获取预约列表")
+    public RestBean<IPage<AppointmentVO>> getAppointmentList(@RequestAttribute(Const.ATTR_USER_ID) int userId,
+                                                             @RequestParam(defaultValue = "1") int page,
+                                                             @RequestParam(defaultValue = "10") int size) {
+        return RestBean.success(appointmentService.getAppointmentList(userId, page, size));
     }
 }
