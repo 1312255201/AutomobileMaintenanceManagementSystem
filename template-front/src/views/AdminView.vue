@@ -23,6 +23,10 @@
             <el-icon><Shop /></el-icon>
             <span>供应商管理</span>
           </el-menu-item>
+          <el-menu-item index="/admin/maintenance">
+            <el-icon><Tools /></el-icon>
+            <span>维修单管理</span>
+          </el-menu-item>
           <el-sub-menu index="parts">
             <template #title>
               <el-icon><Box /></el-icon>
@@ -80,7 +84,7 @@ import { logout } from '@/net'
 import router from "@/router";
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { User, Setting, Shop, Box } from '@element-plus/icons-vue'
+import { User, Setting, Shop, Box, Tools } from '@element-plus/icons-vue'
 
 const route = useRoute();
 const activeMenu = computed(() => route.path);
@@ -94,6 +98,7 @@ watch(route, (to) => {
         let title = '未命名';
         if (to.path.includes('repairman')) title = '维修工管理';
         else if (to.path.includes('supplier')) title = '供应商管理';
+        else if (to.path.includes('maintenance')) title = '维修单管理';
         else if (to.path.includes('parts/category')) title = '配件分类管理';
         else if (to.path.includes('parts/inventory')) title = '配件库存管理';
         else if (to.path.includes('parts/inbound')) title = '入库记录';

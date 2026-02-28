@@ -58,6 +58,10 @@ const router = createRouter({
                     name: 'admin-supplier',
                     component: () => import('@/views/admin/SupplierPage.vue')
                 }, {
+                    path: 'maintenance',
+                    name: 'maintenance',
+                    component: () => import('@/views/admin/MaintenanceOrderPage.vue')
+                }, {
                     path: 'parts/category',
                     name: 'admin-parts-category',
                     component: () => import('@/views/admin/parts/CategoryPage.vue')
