@@ -1,6 +1,8 @@
 package cn.gugufish.controller;
 
 import cn.gugufish.entity.RestBean;
+import cn.gugufish.entity.dto.PartsInbound;
+import cn.gugufish.entity.dto.PartsOutbound;
 import cn.gugufish.entity.vo.request.PartsInboundVO;
 import cn.gugufish.entity.vo.request.PartsInventoryCreateVO;
 import cn.gugufish.entity.vo.request.PartsInventoryUpdateVO;
@@ -83,6 +85,31 @@ public class PartsInventoryController {
     public RestBean<Void> outbound(@RequestAttribute(Const.ATTR_USER_ID) int userId,
                                    @RequestBody @Valid PartsOutboundVO vo) {
         String message = partsInventoryService.outbound(userId, vo);
+        if (message == null) {
+            return RestBean.success();
+        } else {
+            return RestBean.failure(400, message);
+        }
+    }
+
+    @GetMapping("/inbound/list")
+    @Operation(summary = "获取入库记录")
+    public RestBean<IPage<PartsInbound>> getInboundList(@RequestParam(defaultValue = "1") int page,
+                                                        @RequestParam(defaultValue = "10") int size) {
+        return RestBean.success(partsInventoryService.getInboundList(page, size));
+    }
+
+    @GetMapping("/outbound/list")
+    @Operation(summary = "获取出库记录")
+    public RestBean<IPage<PartsOutbound>> getOutboundList(@RequestParam(defaultValue = "1") int page,
+                                                          @RequestParam(defaultValue = "10") int size) {
+        return RestBean.success(partsInventoryService.getOutboundList(page, size));
+    }
+
+    @PostMapping("/outbound/delete")
+    @Operation(summary = "删除出库记录(恢复库存)")
+    public RestBean<Void> deleteOutbound(@RequestParam int id) {
+        String message = partsInventoryService.deleteOutbound(id);
         if (message == null) {
             return RestBean.success();
         } else {

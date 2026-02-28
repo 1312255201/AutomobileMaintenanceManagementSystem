@@ -1,6 +1,8 @@
 package cn.gugufish.service;
 
+import cn.gugufish.entity.dto.PartsInbound;
 import cn.gugufish.entity.dto.PartsInventory;
+import cn.gugufish.entity.dto.PartsOutbound;
 import cn.gugufish.entity.vo.request.PartsInboundVO;
 import cn.gugufish.entity.vo.request.PartsInventoryCreateVO;
 import cn.gugufish.entity.vo.request.PartsInventoryUpdateVO;
@@ -16,4 +18,7 @@ public interface PartsInventoryService extends IService<PartsInventory> {
     String deletePart(int id);
     String inbound(int operatorId, PartsInboundVO vo);
     String outbound(int operatorId, PartsOutboundVO vo);
+    IPage<PartsInbound> getInboundList(int pageNum, int pageSize);
+    IPage<PartsOutbound> getOutboundList(int pageNum, int pageSize);
+    String deleteOutbound(int id);
 }

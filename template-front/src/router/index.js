@@ -57,6 +57,14 @@ const router = createRouter({
                     path: 'parts/inventory',
                     name: 'admin-parts-inventory',
                     component: () => import('@/views/admin/parts/InventoryPage.vue')
+                }, {
+                    path: 'parts/inbound',
+                    name: 'admin-parts-inbound',
+                    component: () => import('@/views/admin/parts/InboundPage.vue')
+                }, {
+                    path: 'parts/outbound',
+                    name: 'admin-parts-outbound',
+                    component: () => import('@/views/admin/parts/OutboundPage.vue')
                 }
             ]
         }

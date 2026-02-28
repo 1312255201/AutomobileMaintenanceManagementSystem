@@ -30,6 +30,8 @@
             </template>
             <el-menu-item index="/admin/parts/category">配件分类</el-menu-item>
             <el-menu-item index="/admin/parts/inventory">配件库存</el-menu-item>
+            <el-menu-item index="/admin/parts/inbound">入库记录</el-menu-item>
+            <el-menu-item index="/admin/parts/outbound">销售记录</el-menu-item>
           </el-sub-menu>
         </el-menu>
       </el-aside>
@@ -94,6 +96,8 @@ watch(route, (to) => {
         else if (to.path.includes('supplier')) title = '供应商管理';
         else if (to.path.includes('parts/category')) title = '配件分类管理';
         else if (to.path.includes('parts/inventory')) title = '配件库存管理';
+        else if (to.path.includes('parts/inbound')) title = '入库记录';
+        else if (to.path.includes('parts/outbound')) title = '销售记录';
         // Add more mappings as needed
         tabs.value.push({
             title: title,
