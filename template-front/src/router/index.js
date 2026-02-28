@@ -45,6 +45,10 @@ const router = createRouter({
                     path: 'repairman',
                     name: 'admin-repairman',
                     component: () => import('@/views/admin/RepairmanPage.vue')
+                }, {
+                    path: 'supplier',
+                    name: 'admin-supplier',
+                    component: () => import('@/views/admin/SupplierPage.vue')
                 }
             ]
         }
