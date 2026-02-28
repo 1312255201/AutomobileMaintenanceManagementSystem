@@ -27,6 +27,14 @@ const router = createRouter({
             path: '/index',
             name: 'index',
             component: () => import('@/views/IndexView.vue'),
+            redirect: '/index/appointment',
+            children: [
+                {
+                    path: 'appointment',
+                    name: 'index-appointment',
+                    component: () => import('@/views/index/AppointmentPage.vue')
+                }
+            ]
         }
     ]
 })
