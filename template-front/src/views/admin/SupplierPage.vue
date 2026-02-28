@@ -23,10 +23,10 @@
             </template>
             <el-table :data="tableData" style="width: 100%" v-loading="loading">
                 <el-table-column prop="id" label="ID" width="60" />
-                <el-table-column prop="name" label="供应商名称" width="150" />
+                <el-table-column prop="name" label="供应商名称" min-width="150" />
                 <el-table-column prop="contactName" label="联系人" width="100" />
                 <el-table-column prop="contactPhone" label="联系电话" width="120" />
-                <el-table-column prop="address" label="公司地址" width="180" show-overflow-tooltip />
+                <el-table-column prop="address" label="公司地址" min-width="200" show-overflow-tooltip />
                 <el-table-column prop="status" label="状态" width="80">
                     <template #default="scope">
                         <el-tag :type="scope.row.status === 0 ? 'success' : 'danger'">
