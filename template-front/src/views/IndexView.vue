@@ -19,6 +19,13 @@
             <el-icon><Calendar /></el-icon>
             <span>线上预约</span>
           </el-menu-item>
+          <el-sub-menu index="user">
+            <template #title>
+              <el-icon><User /></el-icon>
+              <span>个人中心</span>
+            </template>
+            <el-menu-item index="/index/user/info">个人信息</el-menu-item>
+          </el-sub-menu>
         </el-menu>
       </el-aside>
       <el-container>
@@ -51,7 +58,7 @@ import { logout, takeRole } from '@/net'
 import router from "@/router";
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { Calendar, Setting } from '@element-plus/icons-vue'
+import { Calendar, Setting, User } from '@element-plus/icons-vue'
 
 const route = useRoute();
 const activeMenu = computed(() => route.path);

@@ -33,6 +33,10 @@ const router = createRouter({
                     path: 'appointment',
                     name: 'index-appointment',
                     component: () => import('@/views/index/AppointmentPage.vue')
+                }, {
+                    path: 'user/info',
+                    name: 'user-info',
+                    component: () => import('@/views/user/ClientInfoPage.vue')
                 }
             ]
         }, {
