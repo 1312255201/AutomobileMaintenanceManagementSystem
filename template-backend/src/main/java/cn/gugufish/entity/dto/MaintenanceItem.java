@@ -20,5 +20,6 @@ public class MaintenanceItem implements BaseData {
     private BigDecimal cost;
     private Integer quantity;
     private String remark;
+    private Integer partId;
     private Date createTime;
 }
