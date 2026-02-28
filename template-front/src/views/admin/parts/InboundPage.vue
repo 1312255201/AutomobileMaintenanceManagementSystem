@@ -39,7 +39,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { get } from '@/net'
 
 const tableData = ref([])
@@ -68,6 +68,10 @@ const handleCurrentChange = (val) => {
 }
 
 onMounted(() => {
+    loadData()
+})
+
+onActivated(() => {
     loadData()
 })
 </script>

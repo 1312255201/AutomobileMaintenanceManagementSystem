@@ -74,7 +74,7 @@
 </template>
 
 <script setup>
-import { reactive, ref, onMounted, computed } from 'vue'
+import { reactive, ref, onMounted, computed, onActivated } from 'vue'
 import { post, get } from '@/net'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
@@ -162,6 +162,10 @@ const handleDelete = (id) => {
 }
 
 onMounted(() => {
+    loadData()
+})
+
+onActivated(() => {
     loadData()
 })
 </script>

@@ -49,7 +49,7 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, onActivated } from 'vue'
 import { post, get } from '@/net'
 import { ElMessage } from 'element-plus'
 
@@ -90,6 +90,10 @@ const handleDelete = (id) => {
 }
 
 onMounted(() => {
+    loadData()
+})
+
+onActivated(() => {
     loadData()
 })
 </script>
