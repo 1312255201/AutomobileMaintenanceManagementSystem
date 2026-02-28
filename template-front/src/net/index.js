@@ -104,8 +104,8 @@ function login(username, password, remember, success, failure = defaultFailure){
     }, failure)
 }
 
-function post(url, data, success, failure = defaultFailure) {
-    internalPost(url, data, accessHeader() , success, failure)
+function post(url, data, success, failure = defaultFailure, header = {}) {
+    internalPost(url, data, { ...accessHeader(), ...header }, success, failure)
 }
 
 function logout(success, failure = defaultFailure){

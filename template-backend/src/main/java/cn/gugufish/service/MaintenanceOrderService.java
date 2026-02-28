@@ -16,4 +16,5 @@ public interface MaintenanceOrderService extends IService<MaintenanceOrder> {
     String deleteItem(int itemId);
     String completeOrder(int orderId);
     String payOrder(int orderId);
+    List<MaintenanceOrderVO> getActiveOrders();
 }

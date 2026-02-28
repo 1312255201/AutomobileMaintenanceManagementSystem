@@ -1,11 +1,13 @@
 package cn.gugufish.service.impl;
 
-import cn.gugufish.entity.dto.Appointment;
+import cn.gugufish.entity.dto.MaintenanceItem;
+import cn.gugufish.entity.dto.MaintenanceOrder;
 import cn.gugufish.entity.dto.PartsInbound;
 import cn.gugufish.entity.dto.PartsInventory;
 import cn.gugufish.entity.dto.PartsOutbound;
 import cn.gugufish.entity.dto.PartsCategory;
 import cn.gugufish.entity.dto.Account;
+import cn.gugufish.entity.dto.Appointment;
 import cn.gugufish.entity.vo.request.PartsInboundVO;
 import cn.gugufish.entity.vo.request.PartsInventoryCreateVO;
 import cn.gugufish.entity.vo.request.PartsInventoryUpdateVO;
@@ -17,6 +19,8 @@ import cn.gugufish.mapper.PartsOutboundMapper;
 import cn.gugufish.mapper.PartsCategoryMapper;
 import cn.gugufish.mapper.AppointmentMapper;
 import cn.gugufish.mapper.AccountMapper;
+import cn.gugufish.mapper.MaintenanceOrderMapper;
+import cn.gugufish.mapper.MaintenanceItemMapper;
 import cn.gugufish.service.PartsInventoryService;
 import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.core.metadata.IPage;
@@ -27,6 +31,7 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.Date;
 
 @Service
@@ -46,6 +51,12 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
 
     @Resource
     AccountMapper accountMapper;
+
+    @Resource
+    MaintenanceOrderMapper maintenanceOrderMapper;
+
+    @Resource
+    MaintenanceItemMapper maintenanceItemMapper;
 
     @Override
     public String createPart(PartsInventoryCreateVO vo) {
@@ -148,10 +159,11 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
             return "库存不足";
         }
 
-        Appointment appointment = appointmentMapper.selectById(vo.getAppointmentId());
-        if (appointment == null) {
-            return "关联的预约单不存在";
-        }
+        MaintenanceOrder order = maintenanceOrderMapper.selectById(vo.getOrderId());
+        if (order == null) return "维修单不存在";
+        if (order.getStatus() >= 2) return "维修单已完成或已支付，无法添加配件";
+
+        Appointment appointment = appointmentMapper.selectById(order.getAppointmentId());
         
         // Update Inventory
         part.setQuantity(part.getQuantity() - vo.getQuantity());
@@ -163,23 +175,48 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
         PartsOutbound outbound = new PartsOutbound();
         BeanUtils.copyProperties(vo, outbound);
         outbound.setOperatorId(operatorId);
-        outbound.setAppointmentId(vo.getAppointmentId());
+        outbound.setOrderId(vo.getOrderId());
         
         // Auto-fill customer name from appointment user
-        Account user = accountMapper.selectById(appointment.getUserId());
-        if (user != null) {
-            outbound.setCustomerName(user.getUsername());
+        if (appointment != null) {
+             Account user = accountMapper.selectById(appointment.getUserId());
+             if (user != null) {
+                 outbound.setCustomerName(user.getUsername());
+             } else {
+                 outbound.setCustomerName("Unknown (ID: " + appointment.getUserId() + ")");
+             }
         } else {
-            outbound.setCustomerName("Unknown (ID: " + appointment.getUserId() + ")");
+             outbound.setCustomerName("Unknown Appointment");
         }
         
         outbound.setCreateTime(new Date());
         
-        if (partsOutboundMapper.insert(outbound) > 0) {
-            return null;
-        } else {
+        if (partsOutboundMapper.insert(outbound) <= 0) {
             throw new RuntimeException("出库记录创建失败");
         }
+
+        // Auto-add to Maintenance Order
+        MaintenanceItem item = new MaintenanceItem();
+        item.setOrderId(order.getId());
+        item.setItemName(part.getName());
+        item.setItemType(2); // Part
+        item.setPartId(part.getId());
+        item.setQuantity(vo.getQuantity());
+        item.setCost(vo.getPrice());
+        item.setRemark("配件销售自动关联");
+        item.setCreateTime(new Date());
+        
+        maintenanceItemMapper.insert(item);
+        
+        // Update order total cost
+        BigDecimal itemTotal = vo.getPrice().multiply(BigDecimal.valueOf(vo.getQuantity()));
+        order.setTotalCost(order.getTotalCost().add(itemTotal));
+        if (order.getStatus() == 0) {
+            order.setStatus(1);
+        }
+        maintenanceOrderMapper.updateById(order);
+
+        return null;
     }
 
     @Override
@@ -209,6 +246,29 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
         if (part != null) {
             part.setQuantity(part.getQuantity() + outbound.getQuantity());
             this.updateById(part);
+        }
+
+        // Delete associated Maintenance Item and update Order Cost
+        if (outbound.getOrderId() != null) {
+            MaintenanceOrder order = maintenanceOrderMapper.selectById(outbound.getOrderId());
+            if (order != null) {
+                // Find item
+                QueryWrapper<MaintenanceItem> itemWrapper = new QueryWrapper<>();
+                itemWrapper.eq("order_id", outbound.getOrderId())
+                           .eq("part_id", outbound.getPartId())
+                           .eq("item_type", 2)
+                           .last("LIMIT 1"); // Assuming one-to-one or FIFO for same parts
+                
+                MaintenanceItem item = maintenanceItemMapper.selectOne(itemWrapper);
+                if (item != null) {
+                    maintenanceItemMapper.deleteById(item.getId());
+                    
+                    // Update Order Cost
+                    BigDecimal itemTotal = item.getCost().multiply(BigDecimal.valueOf(item.getQuantity()));
+                    order.setTotalCost(order.getTotalCost().subtract(itemTotal));
+                    maintenanceOrderMapper.updateById(order);
+                }
+            }
         }
         
         if (partsOutboundMapper.deleteById(id) > 0) {

@@ -31,11 +31,11 @@ CREATE TABLE `db_parts_outbound` (
   `quantity` int NOT NULL COMMENT 'Outbound Quantity',
   `price` decimal(10,2) NOT NULL COMMENT 'Selling Price',
   `customer_name` varchar(100) DEFAULT NULL COMMENT 'Customer Name (Redundant for display)',
-  `appointment_id` int DEFAULT NULL COMMENT 'Associated Appointment ID',
+  `order_id` int DEFAULT NULL COMMENT 'Associated Maintenance Order ID',
   `operator_id` int NOT NULL COMMENT 'Operator User ID',
   `remark` text COMMENT 'Remark',
   `create_time` datetime DEFAULT CURRENT_TIMESTAMP,
   PRIMARY KEY (`id`),
   KEY `idx_part_id` (`part_id`),
-  KEY `idx_appointment_id` (`appointment_id`)
+  KEY `idx_order_id` (`order_id`)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci COMMENT='Parts Outbound Record Table';

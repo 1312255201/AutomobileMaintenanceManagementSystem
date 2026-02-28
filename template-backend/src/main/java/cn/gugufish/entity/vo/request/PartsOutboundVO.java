@@ -17,7 +17,7 @@ public class PartsOutboundVO {
     @NotNull(message = "销售单价不能为空")
     @DecimalMin(value = "0.01", message = "销售单价必须大于0")
     BigDecimal price;
-    @NotNull(message = "必须选择关联的预约/维修单")
-    Integer appointmentId;
+    @NotNull(message = "必须选择关联的维修单")
+    Integer orderId;
     String remark;
 }

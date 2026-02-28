@@ -175,16 +175,16 @@
                 <el-form-item label="销售单价" prop="price">
                     <el-input-number v-model="outboundForm.price" :precision="2" :step="0.1" :min="0" style="width: 100%" />
                 </el-form-item>
-                <el-form-item label="关联工单" prop="appointmentId">
-                    <el-select v-model="outboundForm.appointmentId" placeholder="请选择维修工单/用户" style="width: 100%" filterable>
+                <el-form-item label="关联维修单" prop="orderId">
+                    <el-select v-model="outboundForm.orderId" placeholder="请选择维修工单" style="width: 100%" filterable>
                         <el-option
-                            v-for="item in activeAppointments"
+                            v-for="item in activeOrders"
                             :key="item.id"
-                            :label="`${item.carModel} (${item.licensePlate}) - ${item.description}`"
+                            :label="`#${item.id} - ${item.carModel} (${item.licensePlate}) - ${item.repairmanName}`"
                             :value="item.id"
                         >
-                            <span style="float: left">{{ item.carModel }} - {{ item.licensePlate }}</span>
-                            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.description }}</span>
+                            <span style="float: left">#{{ item.id }} {{ item.carModel }}</span>
+                            <span style="float: right; color: #8492a6; font-size: 13px">{{ item.licensePlate }}</span>
                         </el-option>
                     </el-select>
                 </el-form-item>
@@ -218,7 +218,7 @@ const searchCategoryId = ref(null)
 const searchBrand = ref('')
 const categoryList = ref([])
 const supplierList = ref([])
-const activeAppointments = ref([])
+const activeOrders = ref([])
 
 const showDialog = ref(false)
 const isEdit = ref(false)
@@ -259,7 +259,7 @@ const outboundForm = reactive({
     partId: null,
     quantity: 1,
     price: 0,
-    appointmentId: null,
+    orderId: null,
     remark: ''
 })
 
@@ -271,7 +271,7 @@ const inboundRules = {
 const outboundRules = {
     quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }],
     price: [{ required: true, message: '请输入单价', trigger: 'blur' }],
-    appointmentId: [{ required: true, message: '请选择关联工单', trigger: 'change' }]
+    orderId: [{ required: true, message: '请选择关联维修单', trigger: 'change' }]
 }
 
 const loadData = () => {
@@ -300,9 +300,9 @@ const loadSuppliers = () => {
     })
 }
 
-const loadActiveAppointments = () => {
-    get(`/api/admin/appointment/active?_t=${Date.now()}`, (data) => {
-        activeAppointments.value = data
+const loadActiveOrders = () => {
+    get(`/api/admin/maintenance/active?_t=${Date.now()}`, (data) => {
+        activeOrders.value = data
     })
 }
 
@@ -396,10 +396,10 @@ const openOutboundDialog = (row) => {
     outboundForm.partId = row.id
     outboundForm.quantity = 1
     outboundForm.price = row.price
-    outboundForm.appointmentId = null
+    outboundForm.orderId = null
     outboundForm.remark = ''
     showOutboundDialog.value = true
-    loadActiveAppointments()
+    loadActiveOrders()
 }
 
 const submitOutbound = () => {

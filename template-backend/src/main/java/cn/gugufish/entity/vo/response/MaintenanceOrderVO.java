@@ -11,6 +11,9 @@ public class MaintenanceOrderVO {
     private Integer appointmentId;
     private Integer repairmanId;
     private String repairmanName;
+    private String carModel;
+    private String licensePlate;
+    private String description;
     private Integer status;
     private BigDecimal totalCost;
     private Date createTime;

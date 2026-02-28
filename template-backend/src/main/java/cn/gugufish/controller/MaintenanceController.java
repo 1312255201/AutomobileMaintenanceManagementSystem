@@ -27,6 +27,12 @@ public class MaintenanceController {
         return RestBean.success(maintenanceOrderService.getOrderList());
     }
 
+    @GetMapping("/active")
+    @Operation(summary = "获取进行中的维修单")
+    public RestBean<List<MaintenanceOrderVO>> getActiveOrders() {
+        return RestBean.success(maintenanceOrderService.getActiveOrders());
+    }
+
     @GetMapping("/detail")
     @Operation(summary = "获取维修单详情")
     public RestBean<MaintenanceOrderVO> getOrderDetail(@RequestParam int id) {

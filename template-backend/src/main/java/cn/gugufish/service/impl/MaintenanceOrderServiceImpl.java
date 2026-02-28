@@ -1,12 +1,14 @@
 package cn.gugufish.service.impl;
 
 import cn.gugufish.entity.dto.*;
+import cn.gugufish.entity.dto.PartsOutbound;
 import cn.gugufish.entity.vo.request.MaintenanceItemCreateVO;
 import cn.gugufish.entity.vo.request.OrderCreateVO;
 import cn.gugufish.entity.vo.response.MaintenanceItemVO;
 import cn.gugufish.entity.vo.response.MaintenanceOrderVO;
 import cn.gugufish.mapper.*;
 import cn.gugufish.service.MaintenanceOrderService;
+import com.baomidou.mybatisplus.core.conditions.query.QueryWrapper;
 import com.baomidou.mybatisplus.extension.service.impl.ServiceImpl;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
@@ -42,9 +44,24 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
         Map<Integer, String> repairmanMap = repairmanMapper.selectList(null).stream()
                 .collect(Collectors.toMap(Repairman::getId, Repairman::getName));
         
+        List<Integer> appointmentIds = orders.stream().map(MaintenanceOrder::getAppointmentId).collect(Collectors.toList());
+        Map<Integer, Appointment> appointmentMap;
+        if (!appointmentIds.isEmpty()) {
+            appointmentMap = appointmentMapper.selectBatchIds(appointmentIds).stream()
+                    .collect(Collectors.toMap(Appointment::getId, a -> a));
+        } else {
+            appointmentMap = Map.of();
+        }
+
         return orders.stream().map(order -> {
             MaintenanceOrderVO vo = order.asViewObject(MaintenanceOrderVO.class);
             vo.setRepairmanName(repairmanMap.get(order.getRepairmanId()));
+            Appointment appointment = appointmentMap.get(order.getAppointmentId());
+            if (appointment != null) {
+                vo.setCarModel(appointment.getCarModel());
+                vo.setLicensePlate(appointment.getLicensePlate());
+                vo.setDescription(appointment.getDescription());
+            }
             return vo;
         }).collect(Collectors.toList());
     }
@@ -58,6 +75,13 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
         Repairman repairman = repairmanMapper.selectById(order.getRepairmanId());
         if (repairman != null) {
             vo.setRepairmanName(repairman.getName());
+        }
+        
+        Appointment appointment = appointmentMapper.selectById(order.getAppointmentId());
+        if (appointment != null) {
+            vo.setCarModel(appointment.getCarModel());
+            vo.setLicensePlate(appointment.getLicensePlate());
+            vo.setDescription(appointment.getDescription());
         }
         
         List<MaintenanceItem> items = maintenanceItemMapper.selectList(
@@ -124,7 +148,7 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
             outbound.setPartId(vo.getPartId());
             outbound.setQuantity(vo.getQuantity());
             outbound.setPrice(vo.getCost()); // Use cost as sale price
-            outbound.setAppointmentId(order.getAppointmentId());
+            outbound.setOrderId(order.getId());
             outbound.setRemark("维修单自动出库: " + order.getId());
             outbound.setCreateTime(new Date());
             partsOutboundMapper.insert(outbound);
@@ -159,11 +183,14 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
                 part.setQuantity(part.getQuantity() + item.getQuantity());
                 partsInventoryMapper.updateById(part);
             }
-            // Note: We are not deleting the outbound record here to keep logs, or maybe we should?
-            // The prompt says "associate sales outbound records".
-            // If we restore stock, the outbound record is technically invalid or reversed.
-            // Let's leave it for now or maybe add a "Reversed" remark to a new outbound record?
-            // Simpler: Just restore stock.
+            
+            // Delete associated Outbound record (Assume one-to-one for simplicity, or delete all matching if duplicates allowed)
+            // To be safe, we try to delete one matching record
+            QueryWrapper<PartsOutbound> outboundWrapper = new QueryWrapper<>();
+            outboundWrapper.eq("order_id", item.getOrderId())
+                           .eq("part_id", item.getPartId())
+                           .last("LIMIT 1");
+            partsOutboundMapper.delete(outboundWrapper);
         }
         
         maintenanceItemMapper.deleteById(itemId);
@@ -207,5 +234,39 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
         this.updateById(order);
         
         return null;
+    }
+
+    @Override
+    public List<MaintenanceOrderVO> getActiveOrders() {
+        QueryWrapper<MaintenanceOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.in("status", 0, 1); // Pending or In Progress
+        queryWrapper.orderByDesc("create_time");
+        
+        List<MaintenanceOrder> orders = this.list(queryWrapper);
+        if (orders.isEmpty()) return List.of();
+        
+        Map<Integer, String> repairmanMap = repairmanMapper.selectList(null).stream()
+                .collect(Collectors.toMap(Repairman::getId, Repairman::getName));
+                
+        List<Integer> appointmentIds = orders.stream().map(MaintenanceOrder::getAppointmentId).collect(Collectors.toList());
+        Map<Integer, Appointment> appointmentMap;
+        if (!appointmentIds.isEmpty()) {
+            appointmentMap = appointmentMapper.selectBatchIds(appointmentIds).stream()
+                    .collect(Collectors.toMap(Appointment::getId, a -> a));
+        } else {
+            appointmentMap = Map.of();
+        }
+        
+        return orders.stream().map(order -> {
+            MaintenanceOrderVO vo = order.asViewObject(MaintenanceOrderVO.class);
+            vo.setRepairmanName(repairmanMap.get(order.getRepairmanId()));
+            Appointment appointment = appointmentMap.get(order.getAppointmentId());
+            if (appointment != null) {
+                vo.setCarModel(appointment.getCarModel());
+                vo.setLicensePlate(appointment.getLicensePlate());
+                vo.setDescription(appointment.getDescription());
+            }
+            return vo;
+        }).collect(Collectors.toList());
     }
 }
