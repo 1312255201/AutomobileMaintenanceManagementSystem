@@ -121,14 +121,14 @@
                 </el-table>
 
                 <div style="margin-top: 20px; text-align: right;" v-if="currentOrder.status < 2">
-                     <el-popconfirm title="确定完成维修吗？这将锁定维修单。" @confirm="completeOrder">
+                    <el-popconfirm title="确定完成维修吗？这将锁定维修单。" @confirm="completeOrder">
                         <template #reference>
                             <el-button type="success" size="large">完成维修</el-button>
                         </template>
                     </el-popconfirm>
                 </div>
-                 <div style="margin-top: 20px; text-align: right;" v-if="currentOrder.status === 2">
-                     <el-popconfirm title="确定用户已支付吗？" @confirm="payOrder">
+                <div style="margin-top: 20px; text-align: right;" v-if="currentOrder.status === 2">
+                    <el-popconfirm title="确定用户已支付吗？" @confirm="payOrder">
                         <template #reference>
                             <el-button type="warning" size="large">确认支付</el-button>
                         </template>
@@ -262,7 +262,7 @@ const getStatusText = (status) => {
     switch(status) {
         case 0: return '待维修'
         case 1: return '维修中'
-        case 2: return '已完成'
+        case 2: return '待支付'
         case 3: return '已支付'
         default: return '未知'
     }
@@ -272,7 +272,7 @@ const getStatusType = (status) => {
     switch(status) {
         case 0: return 'warning'
         case 1: return 'primary'
-        case 2: return 'success'
+        case 2: return 'danger'
         case 3: return 'success'
         default: return 'info'
     }
@@ -381,7 +381,7 @@ const completeOrder = () => {
 const payOrder = () => {
     post('/api/admin/maintenance/pay', { id: currentOrder.value.id }, () => {
         ElMessage.success('订单已支付')
-        viewDetail(currentOrder.value)
+        showDetailDialog.value = false
         loadData()
     }, (message) => {
         ElMessage.warning(message)

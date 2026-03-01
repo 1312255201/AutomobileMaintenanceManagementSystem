@@ -195,8 +195,9 @@ const getStatusText = (status) => {
     switch(status) {
         case 0: return '待确认'
         case 1: return '已确认'
-        case 2: return '已完成'
+        case 2: return '已完成(待支付)'
         case 3: return '已取消'
+        case 4: return '已支付'
         default: return '未知'
     }
 }
@@ -205,8 +206,9 @@ const getStatusType = (status) => {
     switch(status) {
         case 0: return 'warning'
         case 1: return 'primary'
-        case 2: return 'success'
+        case 2: return 'danger'
         case 3: return 'info'
+        case 4: return 'success'
         default: return 'info'
     }
 }

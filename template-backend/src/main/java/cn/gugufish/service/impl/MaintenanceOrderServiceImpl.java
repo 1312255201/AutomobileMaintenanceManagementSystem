@@ -284,6 +284,18 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
         order.setStatus(3); // Paid
         order.setUpdateTime(new Date());
         this.updateById(order);
+
+        // Optional: Update Appointment status to indicate paid?
+        // If we don't, the user sees "Completed" (2) and the button remains if we check for 2.
+        // We should check order status on frontend or introduce a new status.
+        // Let's introduce Appointment Status 3 = Paid/Completed fully? 
+        // But previously 3 was Cancelled.
+        // Let's use 4 for Paid.
+        Appointment appointment = appointmentMapper.selectById(order.getAppointmentId());
+        if (appointment != null) {
+            appointment.setStatus(4); // 4 = Paid
+            appointmentMapper.updateById(appointment);
+        }
         
         return null;
     }
