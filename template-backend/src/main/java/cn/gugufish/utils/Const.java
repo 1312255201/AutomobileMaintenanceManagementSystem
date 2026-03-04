@@ -24,5 +24,6 @@ public final class Const {
     public final static String ROLE_DEFAULT = "user";
     public final static String ROLE_ADMIN = "admin";
     public final static String ROLE_REPAIRMAN = "repairman";
+    public final static String ROLE_ITEMMANAGE ="itemmanage";
 
 }

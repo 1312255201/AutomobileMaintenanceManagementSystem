@@ -78,6 +78,8 @@ function userLogin() {
           router.push("/admin")
         } else if (data.role === 'repairman') {
           router.push("/repairman")
+        } else if (data.role === 'itemmanage') {
+          router.push("/itemmanage")
         } else {
           router.push("/index")
         }

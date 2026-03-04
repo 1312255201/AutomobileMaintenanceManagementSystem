@@ -1,0 +1,100 @@
+<template>
+  <div class="common-layout">
+    <el-container class="layout-container">
+      <el-aside width="200px">
+        <div class="logo">
+            <el-image style="width: 40px; height: 40px" src="/favicon.ico" fit="cover" />
+            <span class="title">库存管理端</span>
+        </div>
+        <el-menu
+          router
+          :default-active="activeMenu"
+          class="el-menu-vertical-demo"
+          background-color="#545c64"
+          text-color="#fff"
+          active-text-color="#ffd04b"
+          style="height: calc(100% - 60px)"
+        >
+          <el-menu-item index="/itemmanage/category">
+            <el-icon><Menu /></el-icon>
+            <span>配件分类管理</span>
+          </el-menu-item>
+          <el-menu-item index="/itemmanage/inventory">
+            <el-icon><Box /></el-icon>
+            <span>配件库存管理</span>
+          </el-menu-item>
+          <el-menu-item index="/itemmanage/inbound">
+            <el-icon><Download /></el-icon>
+            <span>入库记录</span>
+          </el-menu-item>
+        </el-menu>
+      </el-aside>
+      <el-container>
+        <el-header style="text-align: right; font-size: 12px; display: flex; align-items: center; justify-content: flex-end;">
+          <div class="toolbar">
+            <el-dropdown>
+              <span class="el-dropdown-link" style="cursor: pointer; display: flex; align-items: center; margin-left: 10px">
+                <el-icon style="margin-right: 8px"><Setting /></el-icon>
+                <span>操作</span>
+              </span>
+              <template #dropdown>
+                <el-dropdown-menu>
+                  <el-dropdown-item @click="userLogout">退出登录</el-dropdown-item>
+                </el-dropdown-menu>
+              </template>
+            </el-dropdown>
+          </div>
+        </el-header>
+        <el-main>
+          <router-view />
+        </el-main>
+      </el-container>
+    </el-container>
+  </div>
+</template>
+
+<script setup>
+import { logout } from '@/net'
+import router from "@/router";
+import { computed } from 'vue';
+import { useRoute } from 'vue-router';
+import { Menu, Box, Download, Setting } from '@element-plus/icons-vue'
+
+const route = useRoute();
+const activeMenu = computed(() => route.path);
+
+function userLogout() {
+  logout(() => router.push("/"))
+}
+</script>
+
+<style scoped>
+.layout-container {
+  height: 100vh;
+}
+.el-header {
+  background-color: #fff;
+  color: var(--el-text-color-primary);
+  border-bottom: 1px solid #dcdfe6;
+}
+.el-aside {
+  color: var(--el-text-color-primary);
+  background: #545c64;
+}
+.el-main {
+    background-color: #f0f2f5;
+}
+.logo {
+    height: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #434a50;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+}
+.title {
+    margin-left: 10px;
+}
+</style>

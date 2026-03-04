@@ -102,7 +102,7 @@ const rules = {
 
 const loadData = () => {
     loading.value = true
-    get(`/api/admin/parts/category/list?page=${currentPage.value}&size=${pageSize.value}&name=${searchName.value}&_t=${Date.now()}`, (data) => {
+    get(`/api/parts/category/list?page=${currentPage.value}&size=${pageSize.value}&name=${searchName.value}&_t=${Date.now()}`, (data) => {
         tableData.value = data.records
         total.value = data.total
         loading.value = false
@@ -138,7 +138,7 @@ const openEditDialog = (row) => {
 const submitForm = () => {
     formRef.value.validate((valid) => {
         if (valid) {
-            const url = isEdit.value ? '/api/admin/parts/category/update' : '/api/admin/parts/category/create'
+            const url = isEdit.value ? '/api/parts/category/update' : '/api/parts/category/create'
             post(url, form, () => {
                 ElMessage.success(isEdit.value ? '更新成功！' : '创建成功！')
                 showDialog.value = false
@@ -151,7 +151,7 @@ const submitForm = () => {
 }
 
 const handleDelete = (id) => {
-    post('/api/admin/parts/category/delete', { id }, () => {
+    post('/api/parts/category/delete', { id }, () => {
         ElMessage.success('删除成功！')
         loadData()
     }, (message) => {

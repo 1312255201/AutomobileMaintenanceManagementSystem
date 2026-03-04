@@ -173,7 +173,7 @@ const loadData = () => {
 }
 
 const loadCategories = () => {
-    get(`/api/admin/parts/category/list?page=1&size=100&_t=${Date.now()}`, (data) => {
+    get(`/api/parts/category/list?page=1&size=100&_t=${Date.now()}`, (data) => {
         categoryList.value = data.records
     })
 }

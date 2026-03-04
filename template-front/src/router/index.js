@@ -109,6 +109,28 @@ const router = createRouter({
                     component: () => import('@/views/repairman/OutboundPage.vue')
                 }
             ]
+        }, {
+            path: '/itemmanage',
+            name: 'itemmanage',
+            component: () => import('@/views/ItemManageView.vue'),
+            redirect: '/itemmanage/inventory',
+            children: [
+                {
+                    path: 'category',
+                    name: 'itemmanage-category',
+                    component: () => import('@/views/admin/parts/CategoryPage.vue')
+                },
+                {
+                    path: 'inventory',
+                    name: 'itemmanage-inventory',
+                    component: () => import('@/views/admin/parts/InventoryPage.vue')
+                },
+                {
+                    path: 'inbound',
+                    name: 'itemmanage-inbound',
+                    component: () => import('@/views/admin/parts/InboundPage.vue')
+                }
+            ]
         }
     ]
 })
@@ -122,10 +144,12 @@ router.beforeEach((to, from, next) => {
             next('/admin')
         } else if(role === 'repairman') {
             next('/repairman')
+        } else if(role === 'itemmanage') {
+            next('/itemmanage')
         } else {
             next('/index')
         }
-    } else if((to.fullPath.startsWith('/index') || to.fullPath.startsWith('/admin') || to.fullPath.startsWith('/repairman')) && isUnauthorized) {
+    } else if((to.fullPath.startsWith('/index') || to.fullPath.startsWith('/admin') || to.fullPath.startsWith('/repairman') || to.fullPath.startsWith('/itemmanage')) && isUnauthorized) {
         next('/')
     } else {
         next()

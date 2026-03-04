@@ -13,8 +13,8 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/admin/parts/category")
-@Tag(name = "管理员-配件分类管理", description = "管理员管理配件分类信息")
+@RequestMapping("/api/parts/category")
+@Tag(name = "配件分类管理", description = "配件分类信息")
 public class PartsCategoryController {
 
     @Resource

@@ -66,7 +66,7 @@
                 <el-table-column label="操作" width="280" fixed="right">
                     <template #default="scope">
                         <el-button size="small" type="success" @click="openInboundDialog(scope.row)">入库</el-button>
-                        <el-button size="small" type="warning" @click="openOutboundDialog(scope.row)">销售</el-button>
+                        <el-button size="small" type="warning" @click="openOutboundDialog(scope.row)" v-if="role !== 'itemmanage'">销售</el-button>
                         <el-button size="small" @click="openEditDialog(scope.row)">编辑</el-button>
                         <el-popconfirm title="确定删除吗？" @confirm="handleDelete(scope.row.id)">
                             <template #reference>
@@ -208,6 +208,8 @@ import { post, get } from '@/net'
 import { ElMessage } from 'element-plus'
 import { Search } from '@element-plus/icons-vue'
 
+import { takeRole } from '@/net'
+
 const tableData = ref([])
 const loading = ref(false)
 const currentPage = ref(1)
@@ -219,6 +221,7 @@ const searchBrand = ref('')
 const categoryList = ref([])
 const supplierList = ref([])
 const activeOrders = ref([])
+const role = ref(takeRole())
 
 const showDialog = ref(false)
 const isEdit = ref(false)
@@ -289,7 +292,7 @@ const loadData = () => {
 }
 
 const loadCategories = () => {
-    get(`/api/admin/parts/category/list?page=1&size=100&_t=${Date.now()}`, (data) => {
+    get(`/api/parts/category/list?page=1&size=100&_t=${Date.now()}`, (data) => {
         categoryList.value = data.records
     })
 }
