@@ -234,7 +234,7 @@ const createRules = {
 
 const loadData = () => {
     loading.value = true
-    get(`/api/admin/maintenance/list?_t=${Date.now()}`, (data) => {
+    get(`/api/maintenance/list?_t=${Date.now()}`, (data) => {
         tableData.value = data
         loading.value = false
     })
@@ -281,7 +281,7 @@ const getStatusType = (status) => {
 const submitCreate = () => {
     createFormRef.value.validate((valid) => {
         if (valid) {
-            post('/api/admin/maintenance/create', createForm, () => {
+            post('/api/maintenance/create', createForm, () => {
                 ElMessage.success('维修单创建成功！')
                 showCreateDialog.value = false
                 loadData()
@@ -292,7 +292,7 @@ const submitCreate = () => {
 }
 
 const viewDetail = (row) => {
-    get(`/api/admin/maintenance/detail?id=${row.id}&_t=${Date.now()}`, (data) => {
+    get(`/api/maintenance/detail?id=${row.id}&_t=${Date.now()}`, (data) => {
         currentOrder.value = data
         showDetailDialog.value = true
     })
@@ -343,7 +343,7 @@ const handlePartSelect = (val) => {
 const submitAddItem = () => {
     itemFormRef.value.validate((valid) => {
         if (valid) {
-            post('/api/admin/maintenance/item/add', itemForm, () => {
+            post('/api/maintenance/item/add', itemForm, () => {
                 ElMessage.success('添加成功')
                 showAddItemDialog.value = false
                 // Refresh detail
@@ -355,7 +355,7 @@ const submitAddItem = () => {
 }
 
 const deleteItem = (itemId) => {
-    post('/api/admin/maintenance/item/delete', { id: itemId }, () => {
+    post('/api/maintenance/item/delete', { id: itemId }, () => {
         ElMessage.success('删除成功')
         viewDetail(currentOrder.value)
         loadData()
@@ -367,7 +367,7 @@ const deleteItem = (itemId) => {
 }
 
 const completeOrder = () => {
-    post('/api/admin/maintenance/complete', { id: currentOrder.value.id }, () => {
+    post('/api/maintenance/complete', { id: currentOrder.value.id }, () => {
         ElMessage.success('维修单已完成')
         viewDetail(currentOrder.value)
         loadData()
@@ -379,7 +379,7 @@ const completeOrder = () => {
 }
 
 const payOrder = () => {
-    post('/api/admin/maintenance/pay', { id: currentOrder.value.id }, () => {
+    post('/api/maintenance/pay', { id: currentOrder.value.id }, () => {
         ElMessage.success('订单已支付')
         showDetailDialog.value = false
         loadData()

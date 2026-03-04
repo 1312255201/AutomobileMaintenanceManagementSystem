@@ -87,6 +87,18 @@ const router = createRouter({
                     component: () => import('@/views/admin/CouponPage.vue')
                 }
             ]
+        }, {
+            path: '/repairman',
+            name: 'repairman',
+            component: () => import('@/views/RepairmanView.vue'),
+            redirect: '/repairman/maintenance',
+            children: [
+                {
+                    path: 'maintenance',
+                    name: 'repairman-maintenance',
+                    component: () => import('@/views/repairman/MaintenanceOrderPage.vue')
+                }
+            ]
         }
     ]
 })
@@ -98,10 +110,12 @@ router.beforeEach((to, from, next) => {
     if(to.name.startsWith('welcome') && !isUnauthorized) {
         if(role === 'admin') {
             next('/admin')
+        } else if(role === 'repairman') {
+            next('/repairman')
         } else {
             next('/index')
         }
-    } else if((to.fullPath.startsWith('/index') || to.fullPath.startsWith('/admin')) && isUnauthorized) {
+    } else if((to.fullPath.startsWith('/index') || to.fullPath.startsWith('/admin') || to.fullPath.startsWith('/repairman')) && isUnauthorized) {
         next('/')
     } else {
         next()

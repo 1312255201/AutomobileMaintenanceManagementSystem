@@ -70,6 +70,47 @@ public class MaintenanceOrderServiceImpl extends ServiceImpl<MaintenanceOrderMap
     }
 
     @Override
+    public List<MaintenanceOrderVO> getOrderListByRepairman(int userId) {
+        // Find repairman by accountId
+        QueryWrapper<Repairman> repairmanWrapper = new QueryWrapper<>();
+        repairmanWrapper.eq("account_id", userId);
+        Repairman repairman = repairmanMapper.selectOne(repairmanWrapper);
+        
+        if (repairman == null) return List.of();
+        
+        QueryWrapper<MaintenanceOrder> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("repairman_id", repairman.getId());
+        queryWrapper.orderByDesc("create_time");
+        
+        List<MaintenanceOrder> orders = this.list(queryWrapper);
+        if (orders.isEmpty()) return List.of();
+        
+        Map<Integer, String> repairmanMap = repairmanMapper.selectList(null).stream()
+                .collect(Collectors.toMap(Repairman::getId, Repairman::getName));
+        
+        List<Integer> appointmentIds = orders.stream().map(MaintenanceOrder::getAppointmentId).collect(Collectors.toList());
+        Map<Integer, Appointment> appointmentMap;
+        if (!appointmentIds.isEmpty()) {
+            appointmentMap = appointmentMapper.selectBatchIds(appointmentIds).stream()
+                    .collect(Collectors.toMap(Appointment::getId, a -> a));
+        } else {
+            appointmentMap = Map.of();
+        }
+
+        return orders.stream().map(order -> {
+            MaintenanceOrderVO vo = order.asViewObject(MaintenanceOrderVO.class);
+            vo.setRepairmanName(repairmanMap.getOrDefault(order.getRepairmanId(), "Unknown"));
+            Appointment appointment = appointmentMap.get(order.getAppointmentId());
+            if (appointment != null) {
+                vo.setCarModel(appointment.getCarModel());
+                vo.setLicensePlate(appointment.getLicensePlate());
+                vo.setDescription(appointment.getDescription());
+            }
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
     public MaintenanceOrderVO getOrderDetail(int id) {
         MaintenanceOrder order = this.getById(id);
         if (order == null) return null;

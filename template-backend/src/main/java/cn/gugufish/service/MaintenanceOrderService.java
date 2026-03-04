@@ -10,6 +10,7 @@ import java.util.List;
 
 public interface MaintenanceOrderService extends IService<MaintenanceOrder> {
     List<MaintenanceOrderVO> getOrderList();
+    List<MaintenanceOrderVO> getOrderListByRepairman(int repairmanId);
     MaintenanceOrderVO getOrderDetail(int id);
     String createOrder(OrderCreateVO vo);
     String addItem(MaintenanceItemCreateVO vo);

@@ -76,6 +76,8 @@ function userLogin() {
       login(form.username, form.password, form.remember, (data) => {
         if(data.role === 'admin') {
           router.push("/admin")
+        } else if (data.role === 'repairman') {
+          router.push("/repairman")
         } else {
           router.push("/index")
         }
