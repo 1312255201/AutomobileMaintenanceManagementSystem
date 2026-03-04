@@ -86,6 +86,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-amqp</artifactId>
         </dependency>
+        <!--    对象存储Minio客户端依赖    -->
+        <dependency>
+            <groupId>io.minio</groupId>
+            <artifactId>minio</artifactId>
+            <version>8.5.12</version>
+        </dependency>
         <!--    Swagger文档生成框架    -->
         <dependency>
             <groupId>org.springdoc</groupId>
