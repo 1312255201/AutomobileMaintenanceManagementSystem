@@ -23,8 +23,16 @@
                         <el-tag :type="getStatusType(scope.row.status)">{{ getStatusText(scope.row.status) }}</el-tag>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="100">
+                <el-table-column label="操作" width="220">
                     <template #default="scope">
+                        <el-button 
+                            v-if="scope.row.status >= 1" 
+                            size="small" 
+                            type="info" 
+                            @click="openChatDialog(scope.row)"
+                        >
+                            聊天
+                        </el-button>
                         <el-button 
                             v-if="scope.row.status === 2" 
                             size="small" 
@@ -98,6 +106,12 @@
                 </span>
             </template>
         </el-dialog>
+        
+        <!-- Chat Dialog -->
+        <el-dialog v-model="showChatDialog" title="在线咨询" width="600px" destroy-on-close>
+            <ChatComponent :orderId="chatOrderId" :readOnly="chatReadOnly" v-if="chatOrderId" />
+        </el-dialog>
+
         <el-dialog v-model="showPayDialog" title="支付订单" width="600px">
             <el-descriptions title="维修单详情" :column="1" border>
                 <el-descriptions-item label="车型">{{ currentOrder.carModel }}</el-descriptions-item>
@@ -194,6 +208,7 @@
 import { reactive, ref, onMounted } from 'vue'
 import { post, get } from '@/net'
 import { ElMessage } from 'element-plus'
+import ChatComponent from '@/components/ChatComponent.vue'
 
 const tableData = ref([])
 const loading = ref(false)
@@ -215,6 +230,11 @@ const showPayDialog = ref(false)
 const currentOrder = ref({})
 const availableCoupons = ref([])
 const selectedCouponId = ref(null)
+
+// Chat
+const showChatDialog = ref(false)
+const chatOrderId = ref(null)
+const chatReadOnly = ref(false)
 
 // Review
 const showReviewDialog = ref(false)
@@ -293,6 +313,33 @@ const submitForm = () => {
         } else {
             return false
         }
+    })
+}
+
+const openChatDialog = (row) => {
+    // Need maintenance order ID.
+    // If status >= 1, it should have a maintenance order.
+    // If order not found, maybe show error or wait.
+    get(`/api/appointment/order/${row.id}`, (order) => {
+        chatOrderId.value = order.id
+        // Check review status for read-only
+        // Or simply check order status?
+        // Requirement: "chat group in completion evaluation after can not send new info"
+        // If status is 4 (Paid) and reviewed.
+        // Let's check review existence.
+        get(`/api/review/order/${order.id}`, (review) => {
+            chatReadOnly.value = !!review
+            showChatDialog.value = true
+        }, () => {
+             // If 404 or null, it means not reviewed (or API returns null on success)
+             // My backend returns null if not found in success?
+             // ReviewService.getReviewByOrderId returns null if not found.
+             // RestBean success with null data.
+             chatReadOnly.value = false
+             showChatDialog.value = true
+        })
+    }, (msg) => {
+        ElMessage.warning('暂无法开启聊天，请稍后再试')
     })
 }
 

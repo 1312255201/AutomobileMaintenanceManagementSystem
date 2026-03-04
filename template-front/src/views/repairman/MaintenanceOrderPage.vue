@@ -21,13 +21,19 @@
                         {{ new Date(scope.row.createTime).toLocaleString() }}
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="120" fixed="right">
+                <el-table-column label="操作" width="180" fixed="right">
                     <template #default="scope">
                         <el-button size="small" type="primary" @click="viewDetail(scope.row)">查看/处理</el-button>
+                        <el-button size="small" type="info" @click="openChatDialog(scope.row)">聊天</el-button>
                     </template>
                 </el-table-column>
             </el-table>
         </el-card>
+
+        <!-- Chat Dialog -->
+        <el-dialog v-model="showChatDialog" title="在线咨询" width="600px" destroy-on-close>
+            <ChatComponent :orderId="chatOrderId" :readOnly="chatReadOnly" v-if="chatOrderId" />
+        </el-dialog>
 
         <!-- Detail/Repair Dialog -->
         <el-dialog v-model="showDetailDialog" title="维修任务详情" width="800px" destroy-on-close>
@@ -112,6 +118,7 @@
 import { reactive, ref, onMounted, onActivated } from 'vue'
 import { get, post } from '@/net'
 import { ElMessage } from 'element-plus'
+import ChatComponent from '@/components/ChatComponent.vue'
 
 const tableData = ref([])
 const loading = ref(false)
@@ -119,6 +126,10 @@ const showDetailDialog = ref(false)
 const currentOrder = ref(null)
 const showAddItemDialog = ref(false)
 const itemFormRef = ref(null)
+
+const showChatDialog = ref(false)
+const chatOrderId = ref(null)
+const chatReadOnly = ref(false)
 
 const itemForm = reactive({
     orderId: null,
@@ -171,6 +182,17 @@ const viewDetail = (row) => {
     get(`/api/maintenance/detail?id=${row.id}&_t=${Date.now()}`, (data) => {
         currentOrder.value = data
         showDetailDialog.value = true
+    })
+}
+
+const openChatDialog = (row) => {
+    chatOrderId.value = row.id
+    get(`/api/review/order/${row.id}`, (review) => {
+        chatReadOnly.value = !!review
+        showChatDialog.value = true
+    }, () => {
+        chatReadOnly.value = false
+        showChatDialog.value = true
     })
 }
 

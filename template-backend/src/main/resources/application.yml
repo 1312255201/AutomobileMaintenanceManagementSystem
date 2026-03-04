@@ -40,6 +40,6 @@ spring:
       credentials: false
       methods: '*'
   minio:
-    endpoint: 'http://localhost:9000'
+    endpoint: 'http://localhost:9005'
     username: 'minioadmin'
     password: 'minioadmin'

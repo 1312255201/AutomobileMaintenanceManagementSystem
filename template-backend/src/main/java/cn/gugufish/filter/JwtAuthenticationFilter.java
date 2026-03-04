@@ -40,6 +40,21 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authentication);
             request.setAttribute(Const.ATTR_USER_ID, utils.toId(jwt));
+            
+            // Extract role (assuming single role)
+            String role = user.getAuthorities().stream().findFirst().map(a -> a.getAuthority()).orElse("user");
+            if (role.startsWith("ROLE_")) role = role.substring(5); // Remove ROLE_ prefix if exists, usually Spring Security adds it? 
+            // My previous code used roles like "admin", "repairman". Let's check how they are stored.
+            // AccountServiceImpl: .roles(account.getRole()) -> roles are stored as "admin", "repairman" in DB.
+            // Spring Security might wrap them. But here we are manually building UserDetails.
+            // JwtUtils.toUser gets authorities from claims.
+            // JwtUtils.createJwt puts authorities from user.getAuthorities().
+            // AccountServiceImpl returns User.withUsername(...).roles(...)
+            // Spring Security `roles()` method automatically adds "ROLE_" prefix.
+            // So if DB has "admin", token has "ROLE_admin".
+            // So I should strip "ROLE_".
+            if (role.startsWith("ROLE_")) role = role.substring(5);
+            request.setAttribute(Const.ATTR_USER_ROLE, role);
         }
         filterChain.doFilter(request, response);
     }

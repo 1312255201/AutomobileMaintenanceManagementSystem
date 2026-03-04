@@ -26,13 +26,19 @@
                         {{ new Date(scope.row.createTime).toLocaleString() }}
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="150" fixed="right">
+                <el-table-column label="操作" width="220" fixed="right">
                     <template #default="scope">
                         <el-button size="small" type="primary" @click="viewDetail(scope.row)">详情/维修</el-button>
+                        <el-button size="small" type="info" @click="openChatDialog(scope.row)">聊天</el-button>
                     </template>
                 </el-table-column>
             </el-table>
         </el-card>
+
+        <!-- Chat Dialog -->
+        <el-dialog v-model="showChatDialog" title="在线咨询" width="600px" destroy-on-close>
+            <ChatComponent :orderId="chatOrderId" :readOnly="chatReadOnly" v-if="chatOrderId" />
+        </el-dialog>
 
         <!-- Create Order Dialog -->
         <el-dialog v-model="showCreateDialog" title="处理预约 - 创建维修单" width="500px">
@@ -189,12 +195,17 @@
 import { reactive, ref, onMounted, onActivated, computed } from 'vue'
 import { get, post } from '@/net'
 import { ElMessage } from 'element-plus'
+import ChatComponent from '@/components/ChatComponent.vue'
 
 const tableData = ref([])
 const loading = ref(false)
 const showCreateDialog = ref(false)
 const pendingAppointments = ref([])
 const repairmanList = ref([])
+
+const showChatDialog = ref(false)
+const chatOrderId = ref(null)
+const chatReadOnly = ref(false)
 
 // Detail/Repair
 const showDetailDialog = ref(false)
@@ -276,6 +287,17 @@ const getStatusType = (status) => {
         case 3: return 'success'
         default: return 'info'
     }
+}
+
+const openChatDialog = (row) => {
+    chatOrderId.value = row.id
+    get(`/api/review/order/${row.id}`, (review) => {
+        chatReadOnly.value = !!review
+        showChatDialog.value = true
+    }, () => {
+        chatReadOnly.value = false
+        showChatDialog.value = true
+    })
 }
 
 const submitCreate = () => {

@@ -58,16 +58,18 @@ public class ImageController {
     public RestBean<String> uploadImage(@RequestAttribute(Const.ATTR_USER_ID) int id,
                                         @RequestParam("file") MultipartFile file,
                                         HttpServletResponse response) throws Exception{
-        // 检查文件大小限制（5MB）
-        if(file.getSize() > 1024 * 1024 * 10)
-            return RestBean.failure(400, "图像大小最大不能大于10MB");
+        if(file.getSize() > 1024 * 1024 * 5)
+            return RestBean.failure(400, "图像大小最大不能大于5MB");
 
         log.info("用户{}正在进行图片上传操作", id);
         String url = imageService.uploadImage(id, file);
 
         if(url != null){
             log.info("用户{}图片上传成功，大小：{}", id, file.getSize());
-            return RestBean.success(url);
+            // Since ObjectController handles /images/**, we should return a URL that maps to it.
+            // ImageServiceImpl returns path like "/cache/..."
+            // We should prepend "/images" to it.
+            return RestBean.success("/images" + url);
         } else {
             response.setStatus(400);
             return RestBean.failure(400, "图片上传失败，请联系管理员！");

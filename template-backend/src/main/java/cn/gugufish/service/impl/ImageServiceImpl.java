@@ -41,14 +41,16 @@ public class ImageServiceImpl extends ServiceImpl<ImageStoreMapper, StoreImage> 
         String imageName = UUID.randomUUID().toString().replace("-", "");
         Date date = new Date();
         imageName = "/cache/" + format.format(date) + "/" + imageName;
-        PutObjectArgs args = PutObjectArgs.builder()
-                .bucket("carrepair")
-                .stream(file.getInputStream(), file.getSize(), -1)
-                .object(imageName)
-                .build();
+        
         try {
+            PutObjectArgs args = PutObjectArgs.builder()
+                    .bucket("carrepair")
+                    .stream(file.getInputStream(), file.getSize(), -1)
+                    .object(imageName)
+                    .contentType(file.getContentType())
+                    .build();
             minioClient.putObject(args);
-
+            
             if(this.save(new StoreImage(id, imageName, date))) {
                 return imageName;
             } else {
