@@ -31,6 +31,14 @@
             <el-icon><Ticket /></el-icon>
             <span>优惠券管理</span>
           </el-menu-item>
+          <el-menu-item index="/admin/stats">
+            <el-icon><DataLine /></el-icon>
+            <span>数据统计</span>
+          </el-menu-item>
+          <el-menu-item index="/admin/announcement">
+            <el-icon><Bell /></el-icon>
+            <span>公告管理</span>
+          </el-menu-item>
           <el-sub-menu index="parts">
             <template #title>
               <el-icon><Box /></el-icon>
@@ -88,7 +96,7 @@ import { logout } from '@/net'
 import router from "@/router";
 import { computed, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
-import { User, Setting, Shop, Box, Tools, Ticket } from '@element-plus/icons-vue'
+import { User, Setting, Shop, Box, Tools, Ticket, DataLine, Bell } from '@element-plus/icons-vue'
 
 const route = useRoute();
 const activeMenu = computed(() => route.path);
@@ -108,6 +116,8 @@ watch(route, (to) => {
         else if (to.path.includes('parts/inventory')) title = '配件库存管理';
         else if (to.path.includes('parts/inbound')) title = '入库记录';
         else if (to.path.includes('parts/outbound')) title = '销售记录';
+        else if (to.path.includes('stats')) title = '数据统计';
+        else if (to.path.includes('announcement')) title = '公告管理';
         // Add more mappings as needed
         tabs.value.push({
             title: title,

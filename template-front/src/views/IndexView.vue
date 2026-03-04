@@ -13,8 +13,12 @@
           background-color="#545c64"
           text-color="#fff"
           active-text-color="#ffd04b"
-          style="height: calc(100% - 60px)"
+          style="height: calc(100% - 60px); border-right: none"
         >
+          <el-menu-item index="/index/home">
+            <el-icon><House /></el-icon>
+            <span>首页公告</span>
+          </el-menu-item>
           <el-menu-item index="/index/appointment">
             <el-icon><Calendar /></el-icon>
             <span>线上预约</span>
@@ -60,7 +64,7 @@ import { logout, takeRole } from '@/net'
 import router from "@/router";
 import { computed, ref } from 'vue';
 import { useRoute } from 'vue-router';
-import { Calendar, Setting, User } from '@element-plus/icons-vue'
+import { Calendar, Setting, User, House } from '@element-plus/icons-vue'
 
 const route = useRoute();
 const activeMenu = computed(() => route.path);

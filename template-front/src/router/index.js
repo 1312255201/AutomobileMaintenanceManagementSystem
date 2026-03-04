@@ -27,11 +27,16 @@ const router = createRouter({
             path: '/index',
             name: 'index',
             component: () => import('@/views/IndexView.vue'),
-            redirect: '/index/appointment',
-            children: [
-                {
-                    path: 'appointment',
-                    name: 'index-appointment',
+        redirect: '/index/home',
+        children: [
+            {
+                path: 'home',
+                name: 'index-home',
+                component: () => import('@/views/index/HomePage.vue')
+            },
+            {
+                path: 'appointment',
+                name: 'index-appointment',
                     component: () => import('@/views/index/AppointmentPage.vue')
                 }, {
                     path: 'user/info',
@@ -85,6 +90,10 @@ const router = createRouter({
                     path: 'coupon',
                     name: 'admin-coupon',
                     component: () => import('@/views/admin/CouponPage.vue')
+                }, {
+                    path: 'announcement',
+                    name: 'admin-announcement',
+                    component: () => import('@/views/admin/AnnouncementPage.vue')
                 }
             ]
         }, {
