@@ -17,6 +17,8 @@ import jakarta.annotation.Resource;
 import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RestController
 @RequestMapping("/api/parts/inventory")
 @Tag(name = "配件库存管理", description = "配件库存及出入库")
@@ -121,6 +123,24 @@ public class PartsInventoryController {
             return RestBean.success();
         } else {
             return RestBean.failure(400, message);
+        }
+    }
+
+    @GetMapping("/low-stock")
+    @Operation(summary = "获取低库存配件")
+    public RestBean<List<PartsInventoryVO>> getLowStockParts(@RequestParam(defaultValue = "10") int threshold) {
+        return RestBean.success(partsInventoryService.getLowStockParts(threshold));
+    }
+
+    @PostMapping("/inbound/batch")
+    @Operation(summary = "批量入库(一键采购)")
+    public RestBean<Void> batchInbound(@RequestAttribute(Const.ATTR_USER_ID) int userId,
+                                       @RequestBody List<PartsInboundVO> list) {
+        try {
+            partsInventoryService.batchInbound(userId, list);
+            return RestBean.success();
+        } catch (RuntimeException e) {
+            return RestBean.failure(400, e.getMessage());
         }
     }
 }

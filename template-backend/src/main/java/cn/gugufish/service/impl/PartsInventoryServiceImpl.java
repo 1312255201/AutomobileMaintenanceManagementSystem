@@ -33,6 +33,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper, PartsInventory> implements PartsInventoryService {
@@ -265,7 +267,7 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
                 QueryWrapper<MaintenanceItem> itemWrapper = new QueryWrapper<>();
                 itemWrapper.eq("order_id", outbound.getOrderId())
                            .eq("part_id", outbound.getPartId())
-                           .last("LIMIT 1"); // Removed item_type check to be more robust
+                           .last("LIMIT 1"); 
                 
                 MaintenanceItem item = maintenanceItemMapper.selectOne(itemWrapper);
                 if (item != null) {
@@ -284,5 +286,34 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
         } else {
             throw new RuntimeException("删除失败");
         }
+    }
+
+    @Override
+    public List<PartsInventoryVO> getLowStockParts(int threshold) {
+        QueryWrapper<PartsInventory> queryWrapper = new QueryWrapper<>();
+        queryWrapper.lt("quantity", threshold);
+        queryWrapper.orderByAsc("quantity");
+        
+        return this.list(queryWrapper).stream().map(part -> {
+            PartsInventoryVO vo = new PartsInventoryVO();
+            BeanUtils.copyProperties(part, vo);
+            PartsCategory category = partsCategoryMapper.selectById(part.getCategoryId());
+            if (category != null) {
+                vo.setCategoryName(category.getName());
+            }
+            return vo;
+        }).collect(Collectors.toList());
+    }
+
+    @Override
+    @Transactional
+    public String batchInbound(int operatorId, List<PartsInboundVO> inboundList) {
+        for (PartsInboundVO vo : inboundList) {
+            String error = this.inbound(operatorId, vo);
+            if (error != null) {
+                throw new RuntimeException("批量入库失败: " + error);
+            }
+        }
+        return null;
     }
 }

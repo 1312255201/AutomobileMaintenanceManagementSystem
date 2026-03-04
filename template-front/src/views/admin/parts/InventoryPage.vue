@@ -31,7 +31,13 @@
                         />
                         <el-button type="primary" @click="loadData" style="margin-left: 10px"><el-icon><Search /></el-icon></el-button>
                     </div>
-                    <el-button type="primary" @click="openCreateDialog">添加配件</el-button>
+                    <div>
+                        <el-button type="warning" @click="openLowStockDialog" style="margin-right: 10px">
+                            <el-icon style="margin-right: 5px"><Warning /></el-icon>
+                            低库存预警
+                        </el-button>
+                        <el-button type="primary" @click="openCreateDialog">添加配件</el-button>
+                    </div>
                 </div>
             </template>
             <el-table :data="tableData" style="width: 100%" v-loading="loading">
@@ -199,14 +205,60 @@
                 </span>
             </template>
         </el-dialog>
+        <!-- Low Stock Dialog -->
+        <el-dialog v-model="showLowStockDialog" title="低库存预警与批量采购" width="800px">
+            <el-alert
+                title="以下列表展示库存数量低于 10 的配件，您可以选择供应商进行批量采购入库。"
+                type="warning"
+                show-icon
+                :closable="false"
+                style="margin-bottom: 20px"
+            />
+            <el-table :data="lowStockData" style="width: 100%" max-height="400">
+                <el-table-column prop="name" label="配件名称" width="150" show-overflow-tooltip />
+                <el-table-column prop="quantity" label="当前库存" width="100">
+                    <template #default="scope">
+                        <span style="color: red; font-weight: bold">{{ scope.row.quantity }}</span>
+                    </template>
+                </el-table-column>
+                <el-table-column label="采购数量" width="150">
+                    <template #default="scope">
+                        <el-input-number v-model="scope.row.purchaseQuantity" :min="0" size="small" />
+                    </template>
+                </el-table-column>
+                <el-table-column label="供应商" width="200">
+                    <template #default="scope">
+                        <el-select v-model="scope.row.supplierId" placeholder="选择供应商" size="small" style="width: 100%">
+                            <el-option
+                                v-for="item in supplierList"
+                                :key="item.id"
+                                :label="item.name"
+                                :value="item.id"
+                            />
+                        </el-select>
+                    </template>
+                </el-table-column>
+                <el-table-column label="单价" width="120">
+                    <template #default="scope">
+                         <el-input-number v-model="scope.row.purchasePrice" :min="0" :precision="2" size="small" style="width: 100%" />
+                    </template>
+                </el-table-column>
+            </el-table>
+            <template #footer>
+                <span class="dialog-footer">
+                    <el-button @click="showLowStockDialog = false">取消</el-button>
+                    <el-button type="primary" @click="submitBatchPurchase">确认批量采购</el-button>
+                </span>
+            </template>
+        </el-dialog>
     </div>
 </template>
 
 <script setup>
 import { reactive, ref, onMounted, computed, onActivated } from 'vue'
 import { post, get } from '@/net'
-import { ElMessage } from 'element-plus'
-import { Search } from '@element-plus/icons-vue'
+import { ElMessage, ElMessageBox } from 'element-plus'
+import { Search, Warning } from '@element-plus/icons-vue'
 
 import { takeRole } from '@/net'
 
@@ -275,6 +327,65 @@ const outboundRules = {
     quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }],
     price: [{ required: true, message: '请输入单价', trigger: 'blur' }],
     orderId: [{ required: true, message: '请选择关联维修单', trigger: 'change' }]
+}
+
+// Low Stock
+const showLowStockDialog = ref(false)
+const lowStockData = ref([])
+
+const openLowStockDialog = () => {
+    get(`/api/parts/inventory/low-stock?threshold=10&_t=${Date.now()}`, (data) => {
+        lowStockData.value = data.map(item => ({
+            ...item,
+            purchaseQuantity: 0,
+            purchasePrice: item.price, // Default to current selling price as a hint, or 0
+            supplierId: null
+        }))
+        showLowStockDialog.value = true
+        loadSuppliers()
+    })
+}
+
+const submitBatchPurchase = () => {
+    // Filter items with purchase quantity > 0
+    const itemsToPurchase = lowStockData.value.filter(item => item.purchaseQuantity > 0)
+    
+    if (itemsToPurchase.length === 0) {
+        ElMessage.warning('请至少填写一个配件的采购数量')
+        return
+    }
+
+    // Validate supplier
+    for (const item of itemsToPurchase) {
+        if (!item.supplierId) {
+            ElMessage.warning(`配件【${item.name}】未选择供应商`)
+            return
+        }
+    }
+
+    const payload = itemsToPurchase.map(item => ({
+        partId: item.id,
+        quantity: item.purchaseQuantity,
+        price: item.purchasePrice,
+        supplierId: item.supplierId,
+        remark: '低库存批量采购'
+    }))
+
+    ElMessageBox.confirm(
+        `确定要采购这 ${itemsToPurchase.length} 种配件吗？`,
+        '提示',
+        {
+            confirmButtonText: '确定',
+            cancelButtonText: '取消',
+            type: 'warning',
+        }
+    ).then(() => {
+        post('/api/parts/inventory/inbound/batch', payload, () => {
+            ElMessage.success('批量入库成功！')
+            showLowStockDialog.value = false
+            loadData()
+        })
+    })
 }
 
 const loadData = () => {

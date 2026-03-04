@@ -11,6 +11,8 @@ import cn.gugufish.entity.vo.response.PartsInventoryVO;
 import com.baomidou.mybatisplus.core.metadata.IPage;
 import com.baomidou.mybatisplus.extension.service.IService;
 
+import java.util.List;
+
 public interface PartsInventoryService extends IService<PartsInventory> {
     String createPart(PartsInventoryCreateVO vo);
     IPage<PartsInventoryVO> getPartList(int pageNum, int pageSize, String name, Integer categoryId, String brand);
@@ -22,4 +24,6 @@ public interface PartsInventoryService extends IService<PartsInventory> {
     IPage<PartsOutbound> getOutboundList(int pageNum, int pageSize);
     IPage<PartsOutbound> getOutboundListByRepairman(int pageNum, int pageSize, int repairmanId);
     String deleteOutbound(int id);
+    List<PartsInventoryVO> getLowStockParts(int threshold);
+    String batchInbound(int operatorId, List<PartsInboundVO> inboundList);
 }
