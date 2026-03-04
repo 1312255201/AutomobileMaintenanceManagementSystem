@@ -23,5 +23,6 @@ public final class Const {
     //用户角色
     public final static String ROLE_DEFAULT = "user";
     public final static String ROLE_ADMIN = "admin";
+    public final static String ROLE_REPAIRMAN = "repairman";
 
 }

@@ -19,6 +19,14 @@
             <el-icon><Tools /></el-icon>
             <span>维修任务</span>
           </el-menu-item>
+          <el-menu-item index="/repairman/inventory">
+            <el-icon><Box /></el-icon>
+            <span>配件销售</span>
+          </el-menu-item>
+          <el-menu-item index="/repairman/outbound">
+            <el-icon><ShoppingCart /></el-icon>
+            <span>销售记录</span>
+          </el-menu-item>
         </el-menu>
       </el-aside>
       <el-container>
@@ -50,7 +58,7 @@ import { logout } from '@/net'
 import router from "@/router";
 import { computed } from 'vue';
 import { useRoute } from 'vue-router';
-import { Tools, Setting } from '@element-plus/icons-vue'
+import { Tools, Setting, Box, ShoppingCart } from '@element-plus/icons-vue'
 
 const route = useRoute();
 const activeMenu = computed(() => route.path);

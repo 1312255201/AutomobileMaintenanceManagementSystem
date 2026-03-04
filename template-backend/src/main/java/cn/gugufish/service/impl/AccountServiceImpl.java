@@ -60,7 +60,7 @@ public class AccountServiceImpl extends ServiceImpl<AccountMapper, Account> impl
         if(account == null)
             throw new UsernameNotFoundException("用户名或密码错误");
         return User
-                .withUsername(username)
+                .withUsername(account.getUsername())
                 .password(account.getPassword())
                 .roles(account.getRole())
                 .build();

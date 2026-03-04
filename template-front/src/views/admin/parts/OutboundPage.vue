@@ -61,7 +61,7 @@ const total = ref(0)
 
 const loadData = () => {
     loading.value = true
-    get(`/api/admin/parts/inventory/outbound/list?page=${currentPage.value}&size=${pageSize.value}&_t=${Date.now()}`, (data) => {
+    get(`/api/parts/inventory/outbound/list?page=${currentPage.value}&size=${pageSize.value}&_t=${Date.now()}`, (data) => {
         tableData.value = data.records
         total.value = data.total
         loading.value = false
@@ -79,7 +79,7 @@ const handleCurrentChange = (val) => {
 }
 
 const handleDelete = (id) => {
-    post('/api/admin/parts/inventory/outbound/delete', { id }, () => {
+    post('/api/parts/inventory/outbound/delete', { id }, () => {
         ElMessage.success('删除成功，库存已恢复！')
         loadData()
     }, (message) => {

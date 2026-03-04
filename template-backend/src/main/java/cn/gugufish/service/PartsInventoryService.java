@@ -20,5 +20,6 @@ public interface PartsInventoryService extends IService<PartsInventory> {
     String outbound(int operatorId, PartsOutboundVO vo);
     IPage<PartsInbound> getInboundList(int pageNum, int pageSize);
     IPage<PartsOutbound> getOutboundList(int pageNum, int pageSize);
+    IPage<PartsOutbound> getOutboundListByRepairman(int pageNum, int pageSize, int repairmanId);
     String deleteOutbound(int id);
 }

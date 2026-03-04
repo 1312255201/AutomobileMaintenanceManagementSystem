@@ -236,6 +236,15 @@ public class PartsInventoryServiceImpl extends ServiceImpl<PartsInventoryMapper,
     }
 
     @Override
+    public IPage<PartsOutbound> getOutboundListByRepairman(int pageNum, int pageSize, int repairmanId) {
+        Page<PartsOutbound> page = new Page<>(pageNum, pageSize);
+        QueryWrapper<PartsOutbound> queryWrapper = new QueryWrapper<>();
+        queryWrapper.eq("operator_id", repairmanId); // Assuming operatorId is the repairman's user ID (account ID)
+        queryWrapper.orderByDesc("create_time");
+        return partsOutboundMapper.selectPage(page, queryWrapper);
+    }
+
+    @Override
     @Transactional
     public String deleteOutbound(int id) {
         PartsOutbound outbound = partsOutboundMapper.selectById(id);

@@ -18,8 +18,8 @@ import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
-@RequestMapping("/api/admin/parts/inventory")
-@Tag(name = "管理员-配件库存管理", description = "管理员管理配件库存及出入库")
+@RequestMapping("/api/parts/inventory")
+@Tag(name = "配件库存管理", description = "配件库存及出入库")
 public class PartsInventoryController {
 
     @Resource
@@ -102,7 +102,14 @@ public class PartsInventoryController {
     @GetMapping("/outbound/list")
     @Operation(summary = "获取出库记录")
     public RestBean<IPage<PartsOutbound>> getOutboundList(@RequestParam(defaultValue = "1") int page,
-                                                          @RequestParam(defaultValue = "10") int size) {
+                                                          @RequestParam(defaultValue = "10") int size,
+                                                          @RequestAttribute(value = "role", required = false) String role,
+                                                          @RequestAttribute(value = "userId", required = false) Integer userId) {
+        if ("repairman".equals(role)) {
+            // repairman can only see their own sales
+            // Assuming userId is what we need (the operatorId)
+            return RestBean.success(partsInventoryService.getOutboundListByRepairman(page, size, userId));
+        }
         return RestBean.success(partsInventoryService.getOutboundList(page, size));
     }
 

@@ -4,7 +4,7 @@
             <template #header>
                 <div class="card-header">
                     <div class="header-left">
-                        <span>配件库存列表</span>
+                        <span>配件库存销售</span>
                         <el-input
                             v-model="searchName"
                             placeholder="配件名称"
@@ -31,7 +31,6 @@
                         />
                         <el-button type="primary" @click="loadData" style="margin-left: 10px"><el-icon><Search /></el-icon></el-button>
                     </div>
-                    <el-button type="primary" @click="openCreateDialog">添加配件</el-button>
                 </div>
             </template>
             <el-table :data="tableData" style="width: 100%" v-loading="loading">
@@ -63,16 +62,9 @@
                         </el-popover>
                     </template>
                 </el-table-column>
-                <el-table-column label="操作" width="280" fixed="right">
+                <el-table-column label="操作" width="100" fixed="right">
                     <template #default="scope">
-                        <el-button size="small" type="success" @click="openInboundDialog(scope.row)">入库</el-button>
-                        <el-button size="small" type="warning" @click="openOutboundDialog(scope.row)">销售</el-button>
-                        <el-button size="small" @click="openEditDialog(scope.row)">编辑</el-button>
-                        <el-popconfirm title="确定删除吗？" @confirm="handleDelete(scope.row.id)">
-                            <template #reference>
-                                <el-button size="small" type="danger">删除</el-button>
-                            </template>
-                        </el-popconfirm>
+                        <el-button size="small" type="warning" @click="openOutboundDialog(scope.row)" :disabled="scope.row.quantity <= 0">销售</el-button>
                     </template>
                 </el-table-column>
             </el-table>
@@ -88,77 +80,6 @@
                 />
             </div>
         </el-card>
-
-        <!-- Create/Edit Dialog -->
-        <el-dialog v-model="showDialog" :title="dialogTitle" width="500px">
-            <el-form :model="form" ref="formRef" :rules="rules" label-width="100px">
-                <el-form-item label="配件名称" prop="name">
-                    <el-input v-model="form.name" placeholder="请输入配件名称" />
-                </el-form-item>
-                <el-form-item label="配件类型" prop="categoryId">
-                    <el-select v-model="form.categoryId" placeholder="请选择类型" style="width: 100%">
-                        <el-option
-                            v-for="item in categoryList"
-                            :key="item.id"
-                            :label="item.name"
-                            :value="item.id"
-                        />
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="品牌" prop="brand">
-                    <el-input v-model="form.brand" placeholder="请输入品牌" />
-                </el-form-item>
-                <el-form-item label="价格" prop="price">
-                    <el-input-number v-model="form.price" :precision="2" :step="0.1" :min="0" style="width: 100%" />
-                </el-form-item>
-                <el-form-item label="简介" prop="description">
-                    <el-input v-model="form.description" type="textarea" placeholder="请输入简介" />
-                </el-form-item>
-                <el-form-item label="注意事项" prop="precautions">
-                    <el-input v-model="form.precautions" type="textarea" placeholder="请输入注意事项" />
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <span class="dialog-footer">
-                    <el-button @click="showDialog = false">取消</el-button>
-                    <el-button type="primary" @click="submitForm">提交</el-button>
-                </span>
-            </template>
-        </el-dialog>
-
-        <!-- Inbound Dialog -->
-        <el-dialog v-model="showInboundDialog" title="配件入库" width="400px">
-            <el-form :model="inboundForm" ref="inboundFormRef" :rules="inboundRules" label-width="80px">
-                <el-form-item label="配件名称">
-                    <el-input v-model="currentRow.name" disabled />
-                </el-form-item>
-                <el-form-item label="入库数量" prop="quantity">
-                    <el-input-number v-model="inboundForm.quantity" :min="1" style="width: 100%" />
-                </el-form-item>
-                <el-form-item label="入库单价" prop="price">
-                    <el-input-number v-model="inboundForm.price" :precision="2" :step="0.1" :min="0" style="width: 100%" />
-                </el-form-item>
-                <el-form-item label="供应商" prop="supplierId">
-                    <el-select v-model="inboundForm.supplierId" placeholder="请选择供应商" style="width: 100%">
-                        <el-option
-                            v-for="item in supplierList"
-                            :key="item.id"
-                            :label="item.name"
-                            :value="item.id"
-                        />
-                    </el-select>
-                </el-form-item>
-                <el-form-item label="备注" prop="remark">
-                    <el-input v-model="inboundForm.remark" type="textarea" />
-                </el-form-item>
-            </el-form>
-            <template #footer>
-                <span class="dialog-footer">
-                    <el-button @click="showInboundDialog = false">取消</el-button>
-                    <el-button type="primary" @click="submitInbound">确认入库</el-button>
-                </span>
-            </template>
-        </el-dialog>
 
         <!-- Outbound Dialog -->
         <el-dialog v-model="showOutboundDialog" title="配件销售(出库)" width="500px">
@@ -217,43 +138,11 @@ const searchName = ref('')
 const searchCategoryId = ref(null)
 const searchBrand = ref('')
 const categoryList = ref([])
-const supplierList = ref([])
 const activeOrders = ref([])
 
-const showDialog = ref(false)
-const isEdit = ref(false)
-const dialogTitle = computed(() => isEdit.value ? '编辑配件' : '添加配件')
-const formRef = ref(null)
-const form = reactive({
-    id: null,
-    name: '',
-    categoryId: null,
-    brand: '',
-    price: 0,
-    description: '',
-    precautions: ''
-})
-
-const rules = {
-    name: [{ required: true, message: '请输入配件名称', trigger: 'blur' }],
-    categoryId: [{ required: true, message: '请选择配件类型', trigger: 'change' }],
-    price: [{ required: true, message: '请输入价格', trigger: 'blur' }]
-}
-
-// Inbound/Outbound
-const showInboundDialog = ref(false)
 const showOutboundDialog = ref(false)
 const currentRow = ref({})
-const inboundFormRef = ref(null)
 const outboundFormRef = ref(null)
-
-const inboundForm = reactive({
-    partId: null,
-    quantity: 1,
-    price: 0,
-    supplierId: null,
-    remark: ''
-})
 
 const outboundForm = reactive({
     partId: null,
@@ -262,11 +151,6 @@ const outboundForm = reactive({
     orderId: null,
     remark: ''
 })
-
-const inboundRules = {
-    quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }],
-    price: [{ required: true, message: '请输入单价', trigger: 'blur' }]
-}
 
 const outboundRules = {
     quantity: [{ required: true, message: '请输入数量', trigger: 'blur' }],
@@ -294,14 +178,14 @@ const loadCategories = () => {
     })
 }
 
-const loadSuppliers = () => {
-    get(`/api/admin/supplier/list?page=1&size=100&_t=${Date.now()}`, (data) => {
-        supplierList.value = data.records
-    })
-}
-
 const loadActiveOrders = () => {
-    get(`/api/admin/maintenance/active?_t=${Date.now()}`, (data) => {
+    // Repairman should only see their own active orders? Or all active orders to add parts?
+    // User requirement: "can sell parts". Usually parts can be sold to any active order.
+    // Let's use the generic active orders endpoint which lists orders.
+    // If repairman, the previous task updated `active` endpoint? No, previous task updated `list`.
+    // Let's check `MaintenanceController.getActiveOrders`. It calls `maintenanceOrderService.getActiveOrders()`.
+    // `getActiveOrders` in service lists ALL active orders. This is probably fine for parts sales.
+    get(`/api/maintenance/active?_t=${Date.now()}`, (data) => {
         activeOrders.value = data
     })
 }
@@ -314,80 +198,6 @@ const handleSizeChange = (val) => {
 const handleCurrentChange = (val) => {
     currentPage.value = val
     loadData()
-}
-
-const openCreateDialog = () => {
-    isEdit.value = false
-    form.id = null
-    form.name = ''
-    form.categoryId = null
-    form.brand = ''
-    form.price = 0
-    form.description = ''
-    form.precautions = ''
-    showDialog.value = true
-}
-
-const openEditDialog = (row) => {
-    isEdit.value = true
-    form.id = row.id
-    form.name = row.name
-    form.categoryId = row.categoryId
-    form.brand = row.brand
-    form.price = row.price
-    form.description = row.description
-    form.precautions = row.precautions
-    showDialog.value = true
-}
-
-const submitForm = () => {
-    formRef.value.validate((valid) => {
-        if (valid) {
-            const url = isEdit.value ? '/api/parts/inventory/update' : '/api/parts/inventory/create'
-            post(url, form, () => {
-                ElMessage.success(isEdit.value ? '更新成功！' : '创建成功！')
-                showDialog.value = false
-                loadData()
-            })
-        } else {
-            return false
-        }
-    })
-}
-
-const handleDelete = (id) => {
-    post('/api/parts/inventory/delete', { id }, () => {
-        ElMessage.success('删除成功！')
-        loadData()
-    }, (message) => {
-        ElMessage.warning(message)
-    }, {
-        'Content-Type': 'application/x-www-form-urlencoded'
-    })
-}
-
-// Inbound Operations
-const openInboundDialog = (row) => {
-    currentRow.value = row
-    inboundForm.partId = row.id
-    inboundForm.quantity = 1
-    inboundForm.price = row.price // Default to current price
-    inboundForm.supplierId = null
-    inboundForm.remark = ''
-    showInboundDialog.value = true
-    loadSuppliers()
-}
-
-const submitInbound = () => {
-    inboundFormRef.value.validate((valid) => {
-        if (valid) {
-            post('/api/parts/inventory/inbound', inboundForm, () => {
-                ElMessage.success('入库成功！')
-                showInboundDialog.value = false
-                loadData()
-            })
-        }
-    })
 }
 
 // Outbound Operations

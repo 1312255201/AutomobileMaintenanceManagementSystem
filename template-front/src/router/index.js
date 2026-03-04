@@ -97,6 +97,16 @@ const router = createRouter({
                     path: 'maintenance',
                     name: 'repairman-maintenance',
                     component: () => import('@/views/repairman/MaintenanceOrderPage.vue')
+                },
+                {
+                    path: 'inventory',
+                    name: 'repairman-inventory',
+                    component: () => import('@/views/repairman/InventoryPage.vue')
+                },
+                {
+                    path: 'outbound',
+                    name: 'repairman-outbound',
+                    component: () => import('@/views/repairman/OutboundPage.vue')
                 }
             ]
         }
